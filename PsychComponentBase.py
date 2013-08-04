@@ -17,7 +17,6 @@ class PsychComponentBase:
 		self._Conditions = Conditions;
 		self._ChoiceAnswers;
 		self._Status; 
-		self._ActiveTrialIndex;
 		self._OutputFile = OutputFile;
 
 	def GetRandomInterval(self):
@@ -51,9 +50,23 @@ class ConstantStimulusPsychComponent (PsychComponentBase):
 		self._StimVals = list();
 		self._NumTrials;
 		self._FeedbackFrequency;
+		self._CurrentTrial;
 		
 	def Initialise():
 		pass
+
+	def AddStimval(self, stimval):
+     
+		''' Adds stimulus values to the list of stimulus values - checks that
+              input is not a string, but should also not be a logical etc: allowed
+              types should be float, double and integer'''
+      
+		if not isinstance(stimval, str):
+			self._StimVals.append(stimval);
+		else:
+			# should perhaps be some kind of try/catch statement
+			print "Error: stimulus values cannot be strings!"
+
 
 	def SetNextTrail(): 
 		pass

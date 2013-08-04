@@ -1,22 +1,22 @@
 class Trial(object):
 
     ''' 
-        This class contains all variables associated with a single trial 
+        Created         Fri 2 Aug 2013 - ajl
+        Last edited:    Sun 4 Aug 2013 - ajl
 
-        Fields:
-            
-            TrialID
-            StaircaseID (specific to staircases)
-            Condition
-            Stimulus value
-            Interval
-            Response
-            Reaction time
-
+        This class contains all variables and methods associated with a single trial 
     '''
 
     def __init__(self):
-        print 'initialising this biatch'
+        ''' Constructor '''
+
+        self._TrialID;
+        self._StaircaseID;
+        self._Condition;
+        self._Stimval;
+        self._Interval;
+        self._Response;
+        self._ReactionTime;
 
     def GetTrialData(self):
         ''' Return a list of data from this trial '''
