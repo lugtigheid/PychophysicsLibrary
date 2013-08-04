@@ -18,5 +18,6 @@ class Trial(object):
 	def __init__(self):
 		print 'initialising this biatch'
 
-
-
+    def GetTrialData(self):
+        ''' Return a list of data from this trial '''
+        pass
