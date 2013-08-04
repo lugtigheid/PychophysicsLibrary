@@ -2,7 +2,11 @@ import random;
 
 class PsychComponentBase:
 
-	def __init__(self, NumAFC = 1, GiveFeedback = False, Conditions = None, OutputFile = ''):
+	def __init__(self, 
+		NumAFC = 1, 
+		GiveFeedback = False, 
+		Conditions = None, 
+		OutputFile = ''):
 		
 		# start the random number generator 
 		random.seed();
@@ -35,3 +39,30 @@ class PsychComponentBase:
 	def GetParameterDetails(): pass
 	def GetTrialHeader(): pass
 	def GetResponseInfo(): pass
+	def WriteLogFile(): pass
+
+class ConstantStimulusPsychComponent (PsychComponentBase):
+
+	def __init__(self, *args, **kwargs):
+
+		super(ConstantStimulusPsychComponent, self).__init__(*args, **kwargs)
+
+		self._Rep;
+		self._StimVals = list();
+		self._NumTrials;
+		self._FeedbackFrequency;
+		
+	def Initialise():
+		pass
+
+	def SetNextTrail(): 
+		pass
+
+	def EvaluateResponse (trial):
+		pass
+
+	def Start():
+		pass
+
+	def Stop():
+		pass
