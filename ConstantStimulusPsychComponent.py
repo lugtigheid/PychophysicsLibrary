@@ -1,9 +1,13 @@
+from Trial import *
+
 class ConstantStimulusPsychComponent(object):
 
 	def __init__(self, *args, **kwargs):
 		''' Constructor: sets up the variables '''
 
 		self._StimulusValues = list();
+		self._Conditions = None;
+
 
 	def Initialise(self):
 		pass

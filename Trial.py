@@ -7,16 +7,16 @@ class Trial(object):
         This class contains all variables and methods associated with a single trial 
     '''
 
-    def __init__(self):
+    def __init__(self, trialid = 0, staircaseid = 0, condition = 0, stimval = 0, interval = 1):
         ''' Constructor '''
 
-        self._TrialID;
-        self._StaircaseID;
-        self._Condition;
-        self._Stimval;
-        self._Interval;
-        self._Response;
-        self._ReactionTime;
+        self._TrialID = trialid;
+        self._StaircaseID = staircaseid;
+        self._Condition = condition;
+        self._Stimval = stimval;
+        self._Interval = interval;
+        self._Response = None;
+        self._ReactionTime = None;
 
     def GetTrialData(self):
         ''' Return a list of data from this trial '''
