@@ -39,8 +39,9 @@ while not Exp.isFinished():
     # This is where you would normally put the code to show your stimuli. 
     # It would be awesome if we could do this part using a workflow idea. 
 
-    # set the response
-    trial.Response = 1
+    # set the response - this should be either a choice answer (e.g. for nAFC) or 
+    # it should be a float/double if it's a metric depth estimate (e.g. with ruler)
+    trial.Response = Exp.GetRandomResponse()+1
 
     # just print the parameters (needs to be a bit nicer).
     # does not yet include the condition, due to me being a tard.

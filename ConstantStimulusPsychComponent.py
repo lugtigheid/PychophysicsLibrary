@@ -123,6 +123,11 @@ class ConstantStimulusPsychComponent(object):
         # this would normally evaluate a response, here just increments counter
         self._ActiveTrial += 1
 
+    def GetRandomResponse(self):
+
+        # just return a random response
+        return np.random.randint(2)
+
     def GetRandomInterval(self):
 
         # generates a random interval

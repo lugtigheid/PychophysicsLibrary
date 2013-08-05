@@ -28,15 +28,12 @@ class Trial(object):
     def Response(self, value):
         self._Response = value;
 
-
-    def GetTrialData(self):
-        ''' Return a list of data from this trial '''
-        print self._TrialID, self._Condition, self._Stimval, self._Interval
+    ''' Methods '''
 
     # show the values of this specific trial
     def __str__(self):
         
         # print self._TrialID, self._Stimval, self._Interval, self._Response
 
-        return 'Parameters: [#%2.f] \t S(%4.f) \t I(%2.f) \t R(%2.f)' % \
+        return 'Parameters: [#%2.f] \t Stim(%4.f) \t Interval(%2.f) \t Resp(%2.f)' % \
         (self._TrialID+1, self._Stimval, self._Interval, self._Response)
