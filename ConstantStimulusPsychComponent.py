@@ -96,7 +96,9 @@ class ConstantStimulusPsychComponent(object):
         # these vectorise the 2D array and replicates them nRepetitions times
         tmpStim = np.tile(tmpStim.reshape(-1), self._nRepetitions)
         tmpCond = np.tile(tmpCond.reshape(-1), self._nRepetitions)
-        tmpInte = [np.random.randint(self._nIntervals) for x in range(self._nTrials)]
+
+        # generates random intervals for all trials
+        tmpInte = [self.GetRandomInterval() for x in range(self._nTrials)]
 
         # create the list of trials
         for iTrial in range(self._nTrials):
@@ -122,8 +124,10 @@ class ConstantStimulusPsychComponent(object):
         self._ActiveTrial += 1
 
     def GetRandomInterval(self):
+
+        # generates a random interval
         if self._nIntervals > 0:
-            return random.randint(1,self._nIntervals)
+            return np.random.randint(self._nIntervals, size = 1)
 
     def isFinished(self):
 
