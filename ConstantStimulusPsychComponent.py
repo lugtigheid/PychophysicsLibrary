@@ -66,18 +66,15 @@ class ConstantStimulusPsychComponent(object):
         else:
             print "ERROR: can only add numbers of lists of numbers to stimulus values!"
 
-    def AddCondition(self, condition):
+    def AddCondition(self, conditionname):
 
-        ''' This function adds a condition to the conditions list. I implemented 
-            this so that it fills a tuple, but I am not yet sure that it needs a 
-            method like this - it could just be the index of the list that could 
-            be used as the index - maybe convert to a getter / setter construct'''
+        ''' Now uses a Condition object instead of dict '''
 
         # get the current number of conditions
         size = len(self._Conditions)
 
         # we're going to add it as a tuple, with an index and value
-        newItem = {size+1:condition};
+        newItem = Condition(conditionname, size+1)
 
         # add the new item to the list
         self._Conditions.append(newItem)
@@ -125,7 +122,7 @@ class ConstantStimulusPsychComponent(object):
 
     def GetRandomResponse(self):
 
-        # just return a random response
+        # just return a random 
         return np.random.randint(2)
 
     def GetRandomInterval(self):
@@ -139,3 +136,24 @@ class ConstantStimulusPsychComponent(object):
         # this just checks if we're at the end
         return self._ActiveTrial == self._nTrials
 
+
+class Condition(object):
+    def __init__(self, name=None, index=None):
+        self._Name = name
+        self._Index = index
+
+    @property 
+    def Name(self):
+        return self._Name
+
+    @Name.setter
+    def Name(self, value):
+        self._Name = value;
+
+    @property 
+    def Index(self):
+        return self._Index
+
+    @Index.setter
+    def Index(self, value):
+        self._Index = value;

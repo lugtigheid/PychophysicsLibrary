@@ -30,10 +30,16 @@ class Trial(object):
 
     ''' Methods '''
 
+    # returns the name of the current condition
+    def GetConditionName(self):
+
+        # this is really quite awkward
+        return 
+
     # show the values of this specific trial
     def __str__(self):
         
         # print self._TrialID, self._Stimval, self._Interval, self._Response
 
-        return 'Parameters: [#%2.f] \t Stim(%4.f) \t Interval(%2.f) \t Resp(%2.f)' % \
-        (self._TrialID+1, self._Stimval, self._Interval, self._Response)
+        return '[ #%2.f ] \t (%s:%.f) \t\t Stim(%4.f) \t Interval(%.f) \t Resp(%.f)' % \
+        (self._TrialID+1, self._Condition.Name, self._Condition.Index, self._Stimval, self._Interval, self._Response)
