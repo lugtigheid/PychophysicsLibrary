@@ -7,8 +7,12 @@ class ConstantStimulusPsychComponent(object):
     def __init__(self, *args, **kwargs):
         ''' Constructor: sets up the variables '''
 
+        # for now, it seems like there's a problem with the random seed:
+        # doesn't look like it changes at all across instantiations. 
+        random.seed()
+
         self._StimulusValues = list();
-        self._Conditions = dict();
+        self._Conditions = list();
         self._TrialList = list();
         self._nIntervals = 0;
         self._nRepetitions = 0;
@@ -70,7 +74,7 @@ class ConstantStimulusPsychComponent(object):
         size = len(self._Conditions)
 
         # we're going to add it as a tuple, with an index and value
-        newItem = (size+1, condition);
+        newItem = {size+1: condition};
 
         # add the new item to the list
         self._Conditions.append(newItem)
@@ -89,12 +93,22 @@ class ConstantStimulusPsychComponent(object):
         tmpCond, tmpStim = meshgrid(self._Conditions, self._StimulusValues)
 
         # these vectorise the 2D array and replicates them nRepetitions times
+        tmpStim = tile(tmpStim.reshape(-1), self._nRepetitions)
         tmpCond = tile(tmpCond.reshape(-1), self._nRepetitions)
-        tmpStim = tile(tmpStim.reshape(-a), self._nRepetitions)
+        tmpInte = [random.randint(self._nIntervals) for x in range(self._nTrials)]
 
         # this creates a random permutation for the trial order
         r = random.permutation(self._nTrials)
 
+        # create the list of trials
+        for iTrial in range(self._nTrials):
+
+            NewTrial = Trial(trialid = iTrial, condition = tmpCond[iTrial], 
+                            stimval = tmpStim[iTrial], interval = tmpInte[iTrial])
+
+            self._TrialList.append(NewTrial);
+
+        print self._TrialList[9]._Condition
 
     def GetNextTrial(self):
         trial = Trial();

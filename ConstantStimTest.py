@@ -14,11 +14,9 @@ Exp = ConstantStimulusPsychComponent()
 Exp.AddStimval(-10)
 Exp.AddStimval(-5)
 Exp.AddStimval(0)
-Exp.AddStimval(5)
-Exp.AddStimval(10)
 
 # this works as well
-Exp.AddStimval([3, 4, 9])
+Exp.AddStimval([5, 10])
 
 # bit of debugging
 print Exp._StimulusValues
@@ -28,11 +26,9 @@ Exp.AddCondition('Receding')
 
 print Exp._Conditions
 
-t = Exp.GetNextTrial()
-print t
-
-# this works
+# this works through the setters, only takes integers now
 Exp.nIntervals = 1
-print Exp.nIntervals
+Exp.nRepetitions = 2
 
+# do the initialisation here
 Exp.Initialise()
