@@ -4,10 +4,7 @@ Created on Sun Aug  4 10:03:16 2013
 
 @author: Arthur
 """
-
-
 from ConstantStimulusPsychComponent import * 
-
 
 # new instance of the Const. Stim. Comp.
 Exp = ConstantStimulusPsychComponent()
