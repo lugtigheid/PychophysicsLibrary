@@ -36,11 +36,14 @@ while not Exp.isFinished():
     # get the parameters for this trial
     trial = Exp.GetNextTrial()
 
-    # This is where you would normally put the code to show your stimuli. 
-    # It would be awesome if we could do this part using a workflow idea. 
+    ''' This is where you would normally put the code to show your stimuli. 
+        It would be awesome if we could do this part using a workflow idea. '''
 
     # set the response - this should be either a choice answer (e.g. for nAFC) or 
     # it should be a float/double if it's a metric depth estimate (e.g. with ruler)
+    
+    # at the moment, this sets the response DIRECTLY in the Exp._TrialList items
+    # I am not entirely sure whether or not this is a good implementation for Python
     trial.Response = Exp.GetRandomResponse()+1
 
     # just print the parameters (needs to be a bit nicer).
@@ -48,5 +51,5 @@ while not Exp.isFinished():
     print trial
 
     # evaluate the trial (i.e. increment trial number)
-    Exp.Evaluate(trial)
+    Exp.Evaluate()
 

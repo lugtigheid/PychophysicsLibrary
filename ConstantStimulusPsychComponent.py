@@ -17,6 +17,9 @@ class ConstantStimulusPsychComponent(object):
         self._nRepetitions = 0;
         self._nTrials = 0;
         self._ActiveTrial = 0;
+    
+        # this is for the logging
+        self._WriteOutputFile = ''
 
     ''' All the properties that need validation on setting '''
 
@@ -115,8 +118,11 @@ class ConstantStimulusPsychComponent(object):
         # this just returns the next trial
         return self._TrialList[self._ActiveTrial]
         
-    def Evaluate(self, trial):
+    def Evaluate(self):
         
+        # set the response directly into the trial list
+        # self._TrialList[self._ActiveTrial].Response = response;
+
         # this would normally evaluate a response, here just increments counter
         self._ActiveTrial += 1
 
@@ -135,6 +141,9 @@ class ConstantStimulusPsychComponent(object):
 
         # this just checks if we're at the end
         return self._ActiveTrial == self._nTrials
+
+
+    ''' Below are the functions for the logging '''
 
 
 class Condition(object):
