@@ -1,16 +1,15 @@
 from Trial import *
-from random import *
-from numpy import *
+import numpy as np
 
 class ConstantStimulusPsychComponent(object):
 
     def __init__(self, *args, **kwargs):
         ''' Constructor: sets up the variables '''
 
-        # for now, it seems like there's a problem with the random seed:
-        # doesn't look like it changes at all across instantiations. 
-        random.seed()
+        # seed the random number generator
+        np.random.seed()
 
+        # set up the fields / properties
         self._StimulusValues = list();
         self._Conditions = list();
         self._TrialList = list();
@@ -21,6 +20,8 @@ class ConstantStimulusPsychComponent(object):
 
     ''' All the properties that need validation on setting '''
 
+    # number of intervals
+
     @property
     def nIntervals(self):
         return self._nIntervals
@@ -30,6 +31,8 @@ class ConstantStimulusPsychComponent(object):
         if not isinstance(value, int) or value < 1:
             raise ValueError('Invalid input for number of intervals!')
         self._nIntervals = value;
+
+    # number of repetitions
 
     @property
     def nRepetitions(self):
@@ -74,7 +77,7 @@ class ConstantStimulusPsychComponent(object):
         size = len(self._Conditions)
 
         # we're going to add it as a tuple, with an index and value
-        newItem = {size+1: condition};
+        newItem = {size+1:condition};
 
         # add the new item to the list
         self._Conditions.append(newItem)
@@ -87,18 +90,13 @@ class ConstantStimulusPsychComponent(object):
         # determine the total number of trials here first
         self._nTrials = len(self._StimulusValues) * len(self._Conditions) * self._nRepetitions;
 
-        # this won't work at the moment - the conditions are in a dictionary
-
         # create a temporary factorial design here
-        tmpCond, tmpStim = meshgrid(self._Conditions, self._StimulusValues)
+        tmpCond, tmpStim = np.meshgrid(self._Conditions, self._StimulusValues)
 
         # these vectorise the 2D array and replicates them nRepetitions times
-        tmpStim = tile(tmpStim.reshape(-1), self._nRepetitions)
-        tmpCond = tile(tmpCond.reshape(-1), self._nRepetitions)
-        tmpInte = [random.randint(self._nIntervals) for x in range(self._nTrials)]
-
-        # this creates a random permutation for the trial order
-        r = random.permutation(self._nTrials)
+        tmpStim = np.tile(tmpStim.reshape(-1), self._nRepetitions)
+        tmpCond = np.tile(tmpCond.reshape(-1), self._nRepetitions)
+        tmpInte = [np.random.randint(self._nIntervals) for x in range(self._nTrials)]
 
         # create the list of trials
         for iTrial in range(self._nTrials):
@@ -110,8 +108,11 @@ class ConstantStimulusPsychComponent(object):
             # add this new trial to the trial list
             self._TrialList.append(NewTrial);
 
+        # shuffle the order of the trials pseudo-randomly        
+        np.random.shuffle(self._TrialList)
+
     def GetNextTrial(self):
-        
+    
         # this just returns the next trial
         return self._TrialList[self._ActiveTrial]
         

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Aug  4 10:03:16 2013
-
 @author: Arthur
 """
 
@@ -23,7 +22,7 @@ Exp.AddCondition('Approaching')
 Exp.AddCondition('Receding')
 
 # this works through the setters, only takes integers now
-Exp.nIntervals = 1
+Exp.nIntervals = 2
 Exp.nRepetitions = 2
 
 # do the initialisation here
@@ -37,11 +36,15 @@ while not Exp.isFinished():
     # get the parameters for this trial
     trial = Exp.GetNextTrial()
 
-    # just print the parameters (needs to be a bit nicer)
-    trial.GetTrialData()
+    # This is where you would normally put the code to show your stimuli. 
+    # It would be awesome if we could do this part using a workflow idea. 
 
     # set the response
     trial.Response = 1
+
+    # just print the parameters (needs to be a bit nicer).
+    # does not yet include the condition, due to me being a tard.
+    print trial
 
     # evaluate the trial (i.e. increment trial number)
     Exp.Evaluate(trial)
