@@ -8,7 +8,7 @@ class ConstantStimulusPsychComponent(object):
         ''' Constructor: sets up the variables '''
 
         self._StimulusValues = list();
-        self._Conditions = list();
+        self._Conditions = dict();
         self._TrialList = list();
         self._nIntervals = 0;
         self._nRepetitions = 0;
@@ -83,12 +83,10 @@ class ConstantStimulusPsychComponent(object):
         # determine the total number of trials here first
         self._nTrials = len(self._StimulusValues) * len(self._Conditions) * self._nRepetitions;
 
-        print self._Conditions, self._StimulusValues
+        # this won't work at the moment - the conditions are in a dictionary
 
         # create a temporary factorial design here
         tmpCond, tmpStim = meshgrid(self._Conditions, self._StimulusValues)
-
-        print tmpCond, tmpStim
 
         # these vectorise the 2D array and replicates them nRepetitions times
         tmpCond = tile(tmpCond.reshape(-1), self._nRepetitions)
