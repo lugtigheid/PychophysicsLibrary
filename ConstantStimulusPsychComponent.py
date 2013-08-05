@@ -10,6 +10,7 @@ class ConstantStimulusPsychComponent(object):
         np.random.seed()
 
         # set up the fields / properties
+        self._ExperimentName = ''
         self._StimulusValues = list();
         self._Conditions = list();
         self._TrialList = list();
@@ -17,7 +18,9 @@ class ConstantStimulusPsychComponent(object):
         self._nRepetitions = 0;
         self._nTrials = 0;
         self._ActiveTrial = 0;
-    
+        self._StartDate = ''
+        self._StopDate = ''
+
         # this is for the logging
         self._WriteOutputFile = ''
 
@@ -113,6 +116,18 @@ class ConstantStimulusPsychComponent(object):
         # shuffle the order of the trials pseudo-randomly        
         np.random.shuffle(self._TrialList)
 
+        self.Start()
+
+    def Start(self):
+
+        # this sets the current time
+        self._StartDate = self.GetCurrentTime();
+
+    def Stop(self):
+
+        # this sets the current time
+        self._StopDate = self.GetCurrentTime();
+
     def GetNextTrial(self):
     
         # this just returns the next trial
@@ -140,7 +155,33 @@ class ConstantStimulusPsychComponent(object):
     def isFinished(self):
 
         # this just checks if we're at the end
-        return self._ActiveTrial == self._nTrials
+        if self._ActiveTrial == self._nTrials:
+
+            # stop logging and set end time
+            self._StopDate = self.GetCurrentTime()
+
+            # yes, we are finished
+            return True
+
+        else:
+
+            # nope, not finished yet
+            return False
+
+    def GetCurrentTime(self):
+
+        # import this just for this function
+        import datetime 
+
+        # get the current time
+        CurrentTime = datetime.datetime.now().strftime("%a, %b %d %Y %T")
+
+        # print it to the console, just for debugging
+        print 'Current time is: ', CurrentTime;
+
+        # return it
+        return CurrentTime;
+
 
 
     ''' Below are the functions for the logging '''

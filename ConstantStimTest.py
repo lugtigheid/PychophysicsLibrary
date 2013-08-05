@@ -9,6 +9,8 @@ from ConstantStimulusPsychComponent import *
 # new instance of the Const. Stim. Comp.
 Exp = ConstantStimulusPsychComponent()
 
+Exp.ExperimentName = 'Simple test experiment for ConstantStimulusPsychComponent'
+
 # this works
 Exp.AddStimval(-10)
 Exp.AddStimval(-5)
@@ -44,6 +46,7 @@ while not Exp.isFinished():
     
     # at the moment, this sets the response DIRECTLY in the Exp._TrialList items
     # I am not entirely sure whether or not this is a good implementation for Python
+
     trial.Response = Exp.GetRandomResponse()+1
     trial.ReactionTime = 0.01
 
