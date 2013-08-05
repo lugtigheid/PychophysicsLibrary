@@ -103,24 +103,29 @@ class ConstantStimulusPsychComponent(object):
         # create the list of trials
         for iTrial in range(self._nTrials):
 
+            # create a new trial using the parameters from the tmp lists
             NewTrial = Trial(trialid = iTrial, condition = tmpCond[iTrial], 
                             stimval = tmpStim[iTrial], interval = tmpInte[iTrial])
 
+            # add this new trial to the trial list
             self._TrialList.append(NewTrial);
 
-        print self._TrialList[9]._Condition
-
     def GetNextTrial(self):
-        trial = Trial();
-        return trial;
-
+        
+        # this just returns the next trial
+        return self._TrialList[self._ActiveTrial]
+        
     def Evaluate(self, trial):
-        pass
+        
+        # this would normally evaluate a response, here just increments counter
+        self._ActiveTrial += 1
 
     def GetRandomInterval(self):
         if self._nIntervals > 0:
             return random.randint(1,self._nIntervals)
 
     def isFinished(self):
-        pass
+
+        # this just checks if we're at the end
+        return self._ActiveTrial == self._nTrials
 

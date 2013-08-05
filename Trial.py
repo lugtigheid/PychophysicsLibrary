@@ -20,4 +20,4 @@ class Trial(object):
 
     def GetTrialData(self):
         ''' Return a list of data from this trial '''
-        pass
+        print self._TrialID, self._Condition, self._Stimval, self._Interval
