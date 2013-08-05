@@ -34,3 +34,5 @@ print t
 # this works
 Exp.nIntervals = 1
 print Exp.nIntervals
+
+Exp.Initialise()

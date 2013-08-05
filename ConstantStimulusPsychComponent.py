@@ -1,5 +1,6 @@
 from Trial import *
 from random import *
+from numpy import *
 
 class ConstantStimulusPsychComponent(object):
 
@@ -8,8 +9,11 @@ class ConstantStimulusPsychComponent(object):
 
         self._StimulusValues = list();
         self._Conditions = list();
+        self._TrialList = list();
         self._nIntervals = 0;
         self._nRepetitions = 0;
+        self._nTrials = 0;
+        self._ActiveTrial = 0;
 
     ''' All the properties that need validation on setting '''
 
@@ -74,7 +78,25 @@ class ConstantStimulusPsychComponent(object):
     ''' Class methods '''
 
     def Initialise(self):
-        pass
+        ''' Initialise the class - creates list of trials '''
+
+        # determine the total number of trials here first
+        self._nTrials = len(self._StimulusValues) * len(self._Conditions) * self._nRepetitions;
+
+        print self._Conditions, self._StimulusValues
+
+        # create a temporary factorial design here
+        tmpCond, tmpStim = meshgrid(self._Conditions, self._StimulusValues)
+
+        print tmpCond, tmpStim
+
+        # these vectorise the 2D array and replicates them nRepetitions times
+        tmpCond = tile(tmpCond.reshape(-1), self._nRepetitions)
+        tmpStim = tile(tmpStim.reshape(-a), self._nRepetitions)
+
+        # this creates a random permutation for the trial order
+        r = random.permutation(self._nTrials)
+
 
     def GetNextTrial(self):
         trial = Trial();
