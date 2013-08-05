@@ -18,8 +18,8 @@ Exp.AddStimval(0)
 Exp.AddStimval([5, 10])
 
 # this just adds two conditions, by name!!!
-Exp.AddCondition('Approaching')
-Exp.AddCondition('Receding')
+Exp.AddCondition('Approach')
+Exp.AddCondition('Recede')
 
 # this works through the setters, only takes integers now
 Exp.nIntervals = 2
@@ -45,6 +45,7 @@ while not Exp.isFinished():
     # at the moment, this sets the response DIRECTLY in the Exp._TrialList items
     # I am not entirely sure whether or not this is a good implementation for Python
     trial.Response = Exp.GetRandomResponse()+1
+    trial.ReactionTime = 0.01
 
     # just print the parameters (needs to be a bit nicer).
     # does not yet include the condition, due to me being a tard.
