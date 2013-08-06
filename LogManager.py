@@ -20,7 +20,7 @@ header_txt = """# Name: $name
 """
 HEADER_TEMPLATE = string.Template(header_txt)
 
-# TODO: Should open an write to a file when started
+# TODO: Should open a write to a file when started
 
 class LoggingComponent(object):
 
