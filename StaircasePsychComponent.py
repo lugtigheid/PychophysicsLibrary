@@ -2,10 +2,12 @@ class StaircasePsychComponent ( object ):
 
     def __init__(self):
 
-        self._Staircases = list()
-        self._RuntimeStaircases = list()
-        self._EndedStaircases = list()
+        self._ActiveStairsList = list()
+        self._FinishedStairList = list()
 
+    def Initialise(self):
+
+        self._ActiveStairsList = [Staircase() for x in range(2)]
 
 class Staircase ( object ):
 
@@ -17,14 +19,17 @@ class Staircase ( object ):
         self._MaxBoundary;
         self._FixedStepsizes;
         self._InitialStimval;
-        self._nDown;
+        self._CurrentStimval;
         self._nUp;
+        self._nDown;
 
         self._Reversals; # don't need reversal count - just return len(self._Reversals)
         self._OutOfBoundaryCount;
+
         self._RightSinceWrong;
         self._WrongSinceRight;
-        self._TrialCount;
+        self._direction;
+        self._TrialNum;
         self._Status;
         self._StaircaseIndex;
 
