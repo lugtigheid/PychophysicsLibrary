@@ -20,6 +20,8 @@ header_txt = """# Name: $name
 """
 HEADER_TEMPLATE = string.Template(header_txt)
 
+# TODO: Should open an write to a file when started
+
 class LoggingComponent(object):
 
     def __init__(self, ExpName='test', Conditions={}, StimVals=[], Verbose=False, NewLineChar=None):
@@ -80,7 +82,7 @@ class LoggingComponent(object):
                 StimVal, Response, RT, Extra)
             if self._Verbose: print(new_entry)
             
-            self._log_dat = "{0}{1}\n".format(self._log_dat, new_entry)
+            self._log_dat = "{0}{1}{2}".format(self._log_dat, new_entry, self._new_line_char)
             
         else:
             
@@ -91,7 +93,7 @@ class LoggingComponent(object):
         if self._started == True:
             
             # stop date should be in a nice format handled elsewhere
-            self._log_dat = "{0}{1}\n".format(self._log_dat, StopDate)
+            self._log_dat = "{0}{1}{2}".format(self._log_dat, StopDate. self._new_line_char)
             self._started = False
         
         else:
