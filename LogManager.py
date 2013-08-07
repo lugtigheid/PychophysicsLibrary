@@ -70,6 +70,8 @@ class LoggingComponent(object):
             # flag this log object at started
             self._started = True
             
+            # TODO: open a file for writing here
+            
         else:
             
             print("ERROR: This log object is already started.")
@@ -90,11 +92,13 @@ class LoggingComponent(object):
         
     def Stop(self, StopDate):
         
-        if self._started == True:
+        if self._started:
             
             # stop date should be in a nice format handled elsewhere
             self._log_dat = "{0}{1}{2}".format(self._log_dat, StopDate. self._new_line_char)
             self._started = False
+            
+            # TODO: close log file here
         
         else:
             
