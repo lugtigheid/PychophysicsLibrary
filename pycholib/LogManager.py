@@ -9,33 +9,30 @@ import datetime
 
 import string
 
-# default header template style
-
-header_txt = """# Name: $name
-# Started: $start
-# Conditions: $cond
-# Stimulus values: $stimv
-#
-# 0=Trail, 1=Condition, 2=Stimval, 3=Response, 4=RT, 5=Extra
-"""
-HEADER_TEMPLATE = string.Template(header_txt)
-
 # TODO: Should open a write to a file when started
 
 class LoggingComponent(object):
 
-    def __init__(self, ExpName='test', Conditions={}, StimVals=[], Verbose=False, NewLineChar=None):
+    def __init__(self, ExpName='Dummy Experiment', ExpVer=1.0, ExpDateTime='05/05/2009 14:10:09', 
+                 SubjName='abc', SubjExtraInfo='N/A', CondVals={}, StimVals=[], 
+                 Intervals=1, RepCount=1, TrialCount=100, HeaderTemplateFile=None, 
+                 Verbose=False, NewLineChar=None):
+                     
         ''' Contructor for logging object '''
-        
+
         self._ExpName = ExpName
-        self._Conditions = Conditions
-        self._Stim_Vals = StimVals
+        self._ExpVer = ExpVer
+        self._ExpDateTime = ExpDateTime
+        self._SubjName = SubjName
+        self._SubjExtraInfo = SubjExtraInfo
+        self._CondVals = CondVals
+        self._StimVals = StimVals
+        self._Intervals = Intervals
+        self._RepCount = RepCount
+        self._TrialCount = TrialCount
         
         self._Verbose = Verbose
-        
-        self._log_dat = ""
-        self._started = False
-        
+
         # use the platform dependent newline character
         if NewLineChar == None:
             
@@ -51,6 +48,16 @@ class LoggingComponent(object):
         else:
             # can be used to enforce consistency across platforms
             self._new_line_char = NewLineChar
+        
+        # TODO: check if file exists
+        
+        if HeaderTemplateFile != None:
+            self._HeaderTemplateFile = HeaderTemplateFile
+        else:
+            self._HeaderTemplateFile = "default_header.txt"
+        
+        self._log_dat = ""
+        self._started = False
     
     def GetLogData(self):
         return self._log_dat
@@ -60,8 +67,28 @@ class LoggingComponent(object):
         
         if not self._started:
             
-            hdat = HEADER_TEMPLATE.substitute(name=self._ExpName, start=StartDate, 
-                                              cond=self._Conditions, stimv=self._Stim_Vals)
+            header_file = open(self._HeaderTemplateFile, 'r')
+            header_template = string.Template(header_file.read())
+            header_file.close()
+            
+            brk_line = '='*80
+            
+            # TODO: Use platform specific newline char in header, requires
+            # a replace function looking for '\n' and swapping it out for
+            # self._new_line_char
+            
+            hdat = header_template.substitute(exp_name=self._ExpName, 
+                                              exp_ver=self._ExpVer, 
+                                              exp_datetime=self._ExpDateTime, 
+                                              subject_name=self._SubjName, 
+                                              subject_details=self._SubjExtraInfo, 
+                                              cond_count=len(self._CondVals.keys()),
+                                              cond_val=self._CondVals, 
+                                              stim_vals=self._StimVals, 
+                                              intervals=self._Intervals,
+                                              rep_count=self._RepCount, 
+                                              trial_count=self._TrialCount,
+                                              sep_line=brk_line)
             
             if self._Verbose: print(hdat)
             
@@ -109,10 +136,10 @@ class LoggingComponent(object):
         pass
 
 def main():
-    test_log = LoggingComponent()
-    test_log.Start(datetime.datetime.now())
-    test_log.NewEntry(nTrial=0, Condition=1, StimVal=0.5, Response=1, RT='', Extra='')
-    test_log.Stop(datetime.datetime.now())
+    # test_log = LoggingComponent()
+    # test_log.Start(datetime.datetime.now())
+    # test_log.NewEntry(nTrial=0, Condition=1, StimVal=0.5, Response=1, RT='', Extra='')
+    # test_log.Stop(datetime.datetime.now())
     
     return 0
     
