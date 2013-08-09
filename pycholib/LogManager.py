@@ -93,8 +93,6 @@ class LoggingComponent(object):
             
             if self._Verbose: print(hdat)
             
-            self._log_dat = hdat
-            
             # flag this log object at started
             self._OutFile = open(self._OutFilePath, 'a')
             self._started = True
