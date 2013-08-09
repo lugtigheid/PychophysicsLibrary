@@ -55,7 +55,7 @@ class StaircasePsychComponent ( object ):
         self._CurrentStair.IncrementTrial()
 
         # bit of debugging
-        # print 'A:', self.GetCurrentStaircase()._StaircaseIndex, 'T:', self.GetCurrentStaircase()._TrialNum;
+        print 'A:', self.GetCurrentStaircase()._StaircaseIndex, 'T:', self.GetCurrentStaircase()._TrialNum;
 
     def EvaluateTrial(self, trial):
 
@@ -65,7 +65,7 @@ class StaircasePsychComponent ( object ):
         cs = self.GetCurrentStaircase()
 
         # bit of debugging
-        # print cs._TrialNum, cs._MaxTrials, len(self._ActiveStairsList);
+        print cs._TrialNum, cs._MaxTrials, len(self._ActiveStairsList);
 
         # this is staircase termination rule #1
         if cs._TrialNum < cs._MaxTrials:
