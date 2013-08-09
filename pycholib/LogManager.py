@@ -13,12 +13,15 @@ import string
 
 class LoggingComponent(object):
 
-    def __init__(self, ExpName='Dummy Experiment', ExpVer=1.0, ExpDateTime='05/05/2009 14:10:09', 
-                 SubjName='abc', SubjExtraInfo='N/A', CondVals={}, StimVals=[], 
-                 Intervals=1, RepCount=1, TrialCount=100, HeaderTemplateFile=None, 
-                 Verbose=False, NewLineChar=None):
+    def __init__(self, OutFilePath, ExpName='Dummy Experiment', ExpVer=1.0, ExpDateTime='05/05/2009 14:10:09', 
+                 SubjName='abc', SubjExtraInfo='', CondVals={0: "INFRONT", 1: "BEHIND"}, StimVals=[0.01, 0.02, 0.05, 0.1], 
+                 Intervals='2AFC', RepCount=1, TrialCount=100, HeaderTemplateFile=None, 
+                 Verbose=False, NewLineChar=None, CommentChar='#'):
                      
         ''' Contructor for logging object '''
+        
+        self._OutFilePath = OutFilePath
+        self._OutFile = None
 
         self._ExpName = ExpName
         self._ExpVer = ExpVer
@@ -49,6 +52,8 @@ class LoggingComponent(object):
             # can be used to enforce consistency across platforms
             self._new_line_char = NewLineChar
         
+        self._CommentChar = str(CommentChar)
+        
         # TODO: check if file exists
         
         if HeaderTemplateFile != None:
@@ -56,11 +61,7 @@ class LoggingComponent(object):
         else:
             self._HeaderTemplateFile = "default_header.txt"
         
-        self._log_dat = ""
         self._started = False
-    
-    def GetLogData(self):
-        return self._log_dat
     
     def Start(self, StartDate):
         ''' Start logging and write the header '''
@@ -71,7 +72,7 @@ class LoggingComponent(object):
             header_template = string.Template(header_file.read())
             header_file.close()
             
-            brk_line = '='*80
+            brk_line = '='*60
             
             # TODO: Use platform specific newline char in header, requires
             # a replace function looking for '\n' and swapping it out for
@@ -95,9 +96,11 @@ class LoggingComponent(object):
             self._log_dat = hdat
             
             # flag this log object at started
+            self._OutFile = open(self._OutFilePath, 'a')
             self._started = True
             
-            # TODO: open a file for writing here
+            self._OutFile.write(hdat)
+            self._OutFile.write(self._new_line_char)
             
         else:
             
@@ -107,11 +110,11 @@ class LoggingComponent(object):
         
         if self._started:
             
-            new_entry = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format(nTrial, Condition, 
-                StimVal, Response, RT, Extra)
+            new_entry = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}{6}".format(nTrial, Condition, 
+                StimVal, Response, RT, Extra, self._new_line_char)
             if self._Verbose: print(new_entry)
             
-            self._log_dat = "{0}{1}{2}".format(self._log_dat, new_entry, self._new_line_char)
+            self._OutFile.write(new_entry)
             
         else:
             
@@ -122,24 +125,36 @@ class LoggingComponent(object):
         if self._started:
             
             # stop date should be in a nice format handled elsewhere
-            self._log_dat = "{0}{1}{2}".format(self._log_dat, StopDate. self._new_line_char)
+            self._OutFile.write(self._new_line_char)
+            self._OutFile.write("# {0}: Experiment ended{1}".format(StopDate, self._new_line_char))
             self._started = False
             
             # TODO: close log file here
+            self._OutFile.close()
+            self._OutFile = None # set to none
         
         else:
             
             print("ERROR: This log object has not been started.")
 
-    def DumpToFile(self, file_path):
-        ''' Dump the log text to a specfied file '''
-        pass
+    def __del__(self):
+        # we still have a file open, something wrong occured and we have to try
+        # to close the file
+        if self._OutFile != None:
+            warn_msg = "WARNING: LogManager has closed unexpectedly, either the program ended without calling 'Stop()' or something bad occured."
+            self._OutFile.write(self._new_line_char)
+            self._OutFile.write(warn_msg)
+            self._OutFile.write(self._new_line_char)
+            self._OutFile.close()
+            
+            print(warn_msg)
 
 def main():
-    # test_log = LoggingComponent()
-    # test_log.Start(datetime.datetime.now())
-    # test_log.NewEntry(nTrial=0, Condition=1, StimVal=0.5, Response=1, RT='', Extra='')
-    # test_log.Stop(datetime.datetime.now())
+    # test driver
+    #test_log = LoggingComponent('logging_test.txt')
+    #test_log.Start(datetime.datetime.now())
+    #test_log.NewEntry(nTrial=0, Condition=1, StimVal=0.5, Response=1, RT='', Extra='')
+    #test_log.Stop(datetime.datetime.now())
     
     return 0
     
