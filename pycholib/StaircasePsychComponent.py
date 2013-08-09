@@ -73,6 +73,17 @@ class StaircasePsychComponent ( object ):
         else:
             self.DeactivateStaircase(self._CurrentStaircaseID);
 
+    def GetTotalTrials(self):
+        # return a count of the total number of trials for logging
+        # if _ActiveStairsList's length is > 0, this module has been initalized
+        trial_sum = 0
+        if len(self._ActiveStairsList) > 0:
+            for staircase in self._ActiveStairsList:
+                trial_sum += staircase.GetTrialCount()
+            return trial_sum
+        else:
+            print("WARNING: StaircasePsychComponent contains no active staircases. Has it been initialised?")
+            return None
 
     def isFinished(self):
 
@@ -106,7 +117,10 @@ class Staircase ( object ):
         # these two determine the termination rule
         self._MaxTrials = 50;
         self._MaxReversals = 13;
-
+    
+    def GetTrialCount(self):
+        return self._MaxTrials
+    
     def IncrementTrial(self):
         self._TrialNum += 1
 
