@@ -1,4 +1,5 @@
 import random
+from Trial import *
 
 class StaircasePsychComponent ( object ):
 
@@ -7,6 +8,7 @@ class StaircasePsychComponent ( object ):
         self._ActiveStairsList = list()
         self._FinishedStairList = list()
         self._CurrentStaircaseID = 0;   # this refers to the _ActiveStairsList index
+        self._TotalTrials = 0;
 
     def Initialise(self):
 
@@ -15,6 +17,7 @@ class StaircasePsychComponent ( object ):
         stepsize = 2;
         minboundary = 0;
         maxboundary = 100;
+
 
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x]) for x in range(2)]
@@ -47,6 +50,8 @@ class StaircasePsychComponent ( object ):
         self._ActiveStairsList.pop(id);
 
     def GetNextTrial(self):
+        ''' Gets a random staircase from the active staircases and gets 
+            new trial parameters. Returns a trial and sets current stair id. '''
 
         # select one staircase from the list
         self._CurrentStair = self.SelectRandomStaircase();
@@ -54,8 +59,27 @@ class StaircasePsychComponent ( object ):
         # increment the trial counter
         self._CurrentStair.IncrementTrial()
 
-        # bit of debugging
-        print 'A:', self.GetCurrentStaircase()._StaircaseIndex, 'T:', self.GetCurrentStaircase()._TrialNum;
+        # increment the total trial count
+        self._TotalTrials += 1;
+
+        # new trial instance
+        t = Trial(trialid = self._TotalTrials, 
+                  staircaseid = self._CurrentStair._StaircaseIndex,
+                  condition = self._CurrentStair._Condition, 
+                  stimval = self._CurrentStair._CurrentStimval,
+                  interval = self._CurrentStair._Interval);
+
+        # print all trial parameters
+        print t;
+
+        # return the trial
+        return t;
+
+    def GetStimVal(self):
+        pass
+
+    def Update(self):
+        pass
 
     def EvaluateTrial(self, trial):
 
@@ -93,17 +117,21 @@ class StaircasePsychComponent ( object ):
 
 class Staircase ( object ):
 
-    def __init__(self, staircaseID=0, steptype='fixed', initial=0, minboundary=0, maxboundary=100, stepsize=1):
+    def __init__(self, staircaseID=0, steptype='fixed', condition=0, interval=0, 
+                 initial=0, minboundary=0, maxboundary=100, stepsize=1):
 
         self._StepType = steptype;
         self._MinBoundary = minboundary;
         self._MaxBoundary = maxboundary;
         self._FixedStepsizes = stepsize;
-        self._InitialStimval = initial;
-        self._CurrentStimval = initial;
         self._nUp = 1;
         self._nDown = 1;
 
+        self._Condition = condition;
+        self._Interval = interval;
+        self._InitialStimval = initial;
+        self._CurrentStimval = initial;
+ 
         self._Reversals = 0; # don't need reversal count - just return len(self._Reversals)
         self._OutOfBoundaryCount = 0;
 
