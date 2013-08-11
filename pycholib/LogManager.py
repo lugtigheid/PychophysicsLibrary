@@ -1,7 +1,5 @@
 #  LogManager.py
 #  
-#  Copyright 2013 Matthew Cutone <mdc@HP-G61-Notebook-PC>
-#  
 
 import os
 import sys
@@ -13,10 +11,10 @@ import string
 
 class LoggingComponent(object):
 
-    def __init__(self, OutFilePath, ExpName='Dummy Experiment', ExpVer=1.0, ExpDateTime='05/05/2009 14:10:09', 
-                 SubjName='abc', SubjExtraInfo='', CondVals={0: "INFRONT", 1: "BEHIND"}, StimVals=[0.01, 0.02, 0.05, 0.1], 
+    def __init__(self, OutFilePath, ExpName='Dummy Experiment', ExpVer=1.0, 
+                 SubjName='abc', SubjExtraInfo=str(), CondVals=dict(), StimVals=list(), 
                  Intervals='2AFC', RepCount=1, TrialCount=100, HeaderTemplateFile=None, 
-                 Verbose=False, NewLineChar=None, CommentChar='#'):
+                 Verbose=False, NewLineChar=None):
                      
         ''' Contructor for logging object '''
         
@@ -25,7 +23,6 @@ class LoggingComponent(object):
 
         self._ExpName = ExpName
         self._ExpVer = ExpVer
-        self._ExpDateTime = ExpDateTime
         self._SubjName = SubjName
         self._SubjExtraInfo = SubjExtraInfo
         self._CondVals = CondVals
@@ -52,7 +49,8 @@ class LoggingComponent(object):
             # can be used to enforce consistency across platforms
             self._new_line_char = NewLineChar
         
-        self._CommentChar = str(CommentChar)
+        self._HeaderFields = None
+        self._DataFields = None
         
         # TODO: check if file exists
         
@@ -63,24 +61,35 @@ class LoggingComponent(object):
         
         self._started = False
     
-    def Start(self, StartDate):
+    def SetHeaderFields(self, *args):
+        self._HeaderFields = args
+    
+    def SetDataFields(self, *args):
+        self._DataFields = args
+    
+    def Start(self):
         ''' Start logging and write the header '''
         
         if not self._started:
             
+            # starting timestamp
+            start_timestp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # open header file and get the text
             header_file = open(self._HeaderTemplateFile, 'r')
-            header_template = string.Template(header_file.read())
+            header_text = header_file.read()
             header_file.close()
             
-            brk_line = '='*60
+            if self._new_line_char != '\n':
+                header_text.replace('\n', self._new_line_char)
             
-            # TODO: Use platform specific newline char in header, requires
-            # a replace function looking for '\n' and swapping it out for
-            # self._new_line_char
+            header_template = string.Template(header_text)
+            
+            brk_line = '='*60 # break line
             
             hdat = header_template.substitute(exp_name=self._ExpName, 
                                               exp_ver=self._ExpVer, 
-                                              exp_datetime=self._ExpDateTime, 
+                                              exp_date=start_timestp, 
                                               subject_name=self._SubjName, 
                                               subject_details=self._SubjExtraInfo, 
                                               cond_count=len(self._CondVals.keys()),
@@ -97,37 +106,82 @@ class LoggingComponent(object):
             self._OutFile = open(self._OutFilePath, 'a')
             self._started = True
             
+            if os.path.getsize(self._OutFilePath) > 0:
+                self._OutFile.write(self._new_line_char)
+            
             self._OutFile.write(hdat)
+            data_title_line = str()
+            n = 0
+            for field in self._DataFields:
+                if n > 0:
+                    data_title_line = '{0}    {1}'.format(data_title_line, field)
+                else:
+                    data_title_line = '# {0}'.format(field)
+                    n += 1
+            
+            self._OutFile.write(data_title_line)
+            self._OutFile.write(self._new_line_char)
             self._OutFile.write(self._new_line_char)
             
         else:
             
             print("ERROR: This log object is already started.")
         
-    def NewEntry(self, nTrial, Condition='', StimVal='', Response='', RT='', Extra=''):
+    def Add(self, **kwargs):
         
         if self._started:
             
-            new_entry = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}{6}".format(nTrial, Condition, 
-                StimVal, Response, RT, Extra, self._new_line_char)
-            if self._Verbose: print(new_entry)
+            if len(kwargs.keys()) == len(self._DataFields): # check if fields are missing
             
-            self._OutFile.write(new_entry)
+                # find matching indices specified by 'SetDataFields()'        
+                key_map = dict()
+                
+                for key in kwargs.keys():
+                    try:
+                        key_map[self._DataFields.index(key)] = kwargs[key]
+                    except KeyError:
+                        print("ERROR: Invalid field name specified.")
+                        return
+                
+                # create a sorted list of output values based on SetDataFields() indices
+                out_list = list()
+                
+                n = 0
+                while n < len(key_map.keys()):
+                    out_list.append(key_map[n])
+                    n += 1
+                
+                # write data to file
+                data_field_line = str()
+                n = 0
+                for field in out_list:
+                    if n > 0:
+                        data_field_line = '{0}\t{1}'.format(data_field_line, field)
+                    else:
+                        data_field_line = field
+                        n += 1
+                
+                self._OutFile.write(data_field_line)
+                self._OutFile.write(self._new_line_char)
+            
+            else:
+                raise KeyError
+                print("ERROR: Field(s) missing, check if all fields are specified.")
             
         else:
             
             print("ERROR: Can not add entry, log object has not be started yet.")
         
-    def Stop(self, StopDate):
+    def Stop(self):
         
         if self._started:
+            stop_timestp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            # stop date should be in a nice format handled elsewhere
             self._OutFile.write(self._new_line_char)
-            self._OutFile.write("# {0}: Experiment ended{1}".format(StopDate, self._new_line_char))
+            self._OutFile.write("# {0}: Experiment ended{1}".format(stop_timestp, self._new_line_char))
+                                
             self._started = False
             
-            # TODO: close log file here
             self._OutFile.close()
             self._OutFile = None # set to none
         
@@ -149,10 +203,16 @@ class LoggingComponent(object):
 
 def main():
     # test driver
-    #test_log = LoggingComponent('logging_test.txt')
-    #test_log.Start(datetime.datetime.now())
-    #test_log.NewEntry(nTrial=0, Condition=1, StimVal=0.5, Response=1, RT='', Extra='')
-    #test_log.Stop(datetime.datetime.now())
+    test_log = LoggingComponent('logging_test.txt', ExpName='Dummy Experiment',
+                                CondVals={0: "INFRONT", 1: "BEHIND"}, StimVals=[0.01, 0.02, 0.05, 0.1])
+    
+    test_log.SetDataFields('Trial', 'Cond', 'StimLevel', 'Interv', 'Response', 'Correct', 'Latency')
+    
+    test_log.Start()
+    test_log.Add(Trial=0, Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
+    test_log.Add(Trial=1, Cond=0, Interv=2, StimLevel=0.1, Response=1, Correct=1, Latency=0.3252)
+    test_log.Add(Trial=2, Cond=1, Interv=2, StimLevel=0.05, Response=0, Correct=1, Latency=0.643)
+    test_log.Stop()
     
     return 0
     
