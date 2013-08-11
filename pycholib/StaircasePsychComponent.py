@@ -97,7 +97,7 @@ class StaircasePsychComponent ( object ):
         else:
             self.DeactivateStaircase(self._CurrentStaircaseID);
 
-    def GetTotalTrials(self):
+    def GetRemainingTrials(self):
         # return a count of the total number of trials for logging
         # if _ActiveStairsList's length is > 0, this module has been initalized
         trial_sum = 0
