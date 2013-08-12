@@ -18,29 +18,15 @@ class StaircasePsychComponent ( object ):
         minboundary = 0;
         maxboundary = 100;
 
-
     '''
-
-    --- this is just a summary of functionality for porting this library -----
-
-    def init()
+        def init()
     --------------------------
     
     - global trial counter = 0
     - get the number of staircases we're initialising
     - set active staircases
     - for each staircase, set the parameters for each
-
-    def NewTrial()
-    --------------------------
-
-    - select a random trial from the active staircases -> becomes current
-    - increment the trial count for current staircase
-    - increment the total trial count
-    - get the stimulus value ( sc = get stimulusval(sc) )
-    - set the trial stimval and trial number. 
-    - return these. 
-
+ 
     def Update()
     --------------------------
     
@@ -55,34 +41,6 @@ class StaircasePsychComponent ( object ):
         1. done = ~numel(sc.active)
         there's a function to remove terminated staircases
 
-    def GetStimval()
-    --------------------------
-    returns a new stimulus value on the basis of the previous trial
-
-    - get current stimulus value and direction (+ or -)
-    - determine the number of reversals for this staircase
-    - if number of trials is larger than one, do this, otherwise _InitialStimval
-
-    - determine steptype:
-        FIXED:
-            if we're not on the last item of the _FixedStepsizes array:
-                the index is equal to the number of reversals
-            otherwise just use the last item in the list (-1)
-            extract the stepsize from _FixedStepsizes [index]
-            calculate stimval: stimval+direction*stepsize;
-
-        RANDOM: 
-            stepindex is random number in the list
-            do the same as above ^-
-
-    - code that checks the out of _OutOfBoundaryCount
-
-    
-
- 
-
-    def Evaluate()
-    --------------------------
 
 
 
@@ -122,7 +80,61 @@ class StaircasePsychComponent ( object ):
         # remove it from the active list
         self._ActiveStairsList.pop(id);
 
+
+    def GetStimval(self):
+    
+    '''         
+    returns a new stimulus value on the basis of the previous trial
+
+    - get current stimulus value and direction (+ or -)
+    - determine the number of reversals for this staircase
+    - if number of trials is larger than one, do this, otherwise _InitialStimval
+
+    - determine steptype:
+        FIXED:
+            if we're not on the last item of the _FixedStepsizes array:
+                the index is equal to the number of reversals
+            otherwise just use the last item in the list (-1)
+            extract the stepsize from _FixedStepsizes [index]
+            calculate stimval: stimval+direction*stepsize;
+
+        RANDOM: 
+            stepindex is random number in the list
+            do the same as above ^-
+
+    - code that checks the out of _OutOfBoundaryCount:
+        if stimval smaller than mimimum stimval: 
+            increment the hit boundaries counter for this staircase
+            set the stimulus value to the minimum value (no change)
+        if larger than the maximum stimval:
+            increment the hit boundaries counter for this staircase:
+            set the stimulus value to the maximum value (no change)
+    
+    return stimval
+    '''
+
+
+        pass
+
+
+
+
+
     def GetNextTrial(self):
+        
+    '''
+    def NewTrial()
+    --------------------------
+
+        - select a random trial from the active staircases -> becomes current
+        - increment the trial count for current staircase
+        - increment the total trial count
+        - get the stimulus value ( sc = get stimulusval(sc) )
+        - set the trial stimval and trial number. 
+        - return these. 
+        '''
+
+
         ''' Gets a random staircase from the active staircases and gets 
             new trial parameters. Returns a trial and sets current stair id. '''
 
@@ -155,6 +167,37 @@ class StaircasePsychComponent ( object ):
         pass
 
     def EvaluateTrial(self, trial):
+    
+    '''
+    --------------------------
+    Evaluates the response and preps the stimval of the stiarcase
+
+    sets the direction to 0 as a default
+    check the response (coded as either 0 or 1)
+
+    case 0:
+        increase the number of incorrect answer count
+        if staircase up count is one (not sure why this is) OR mod
+        (_CurrentStair.wrong, _CurrentStair.up) == 0:
+
+            This means there's a reversal, so save that stimval (if right >= down) 
+            reset the correct counter
+            set the direction to 1
+
+    case 1:
+        increase the number of correct answer count
+        if staircase down count is one (not sure why this is) or mod
+        (_CurrentStair.right, _CurrentStair.down) == 0:
+
+            That's a reversal! Save it (if wrong >= up)
+            reset the wrong counter
+            set the direction to -1
+
+    otherwise Raise exception.
+
+    update() 
+
+    '''
 
         # TODO: I don't actually think the trial parameter is needed.
 
@@ -213,6 +256,7 @@ class Staircase ( object ):
         self._direction = 0;
         self._TrialNum = 0;
         self._Status = 0;
+        
         self._StaircaseIndex = staircaseID;
 
         # these two determine the termination rule
