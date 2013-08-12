@@ -19,6 +19,79 @@ class StaircasePsychComponent ( object ):
         maxboundary = 100;
 
 
+    '''
+
+    --- this is just a summary of functionality for porting this library -----
+
+    def init()
+    --------------------------
+    
+    - global trial counter = 0
+    - get the number of staircases we're initialising
+    - set active staircases
+    - for each staircase, set the parameters for each
+
+    def NewTrial()
+    --------------------------
+
+    - select a random trial from the active staircases -> becomes current
+    - increment the trial count for current staircase
+    - increment the total trial count
+    - get the stimulus value ( sc = get stimulusval(sc) )
+    - set the trial stimval and trial number. 
+    - return these. 
+
+    def Update()
+    --------------------------
+    
+    - create a new line with the data
+    - add those data to the data within the staircase
+        - However, I think the data should be saved centrally in a trial list
+    - Do the staircase tarmination rule here:
+        1. current trial is larger than max trials (is this total or just for this staircase?)
+        2. max reversals has been reached
+        3. max boundaries was hit
+    -- check global termination rule:
+        1. done = ~numel(sc.active)
+        there's a function to remove terminated staircases
+
+    def GetStimval()
+    --------------------------
+    returns a new stimulus value on the basis of the previous trial
+
+    - get current stimulus value and direction (+ or -)
+    - determine the number of reversals for this staircase
+    - if number of trials is larger than one, do this, otherwise _InitialStimval
+
+    - determine steptype:
+        FIXED:
+            if we're not on the last item of the _FixedStepsizes array:
+                the index is equal to the number of reversals
+            otherwise just use the last item in the list (-1)
+            extract the stepsize from _FixedStepsizes [index]
+            calculate stimval: stimval+direction*stepsize;
+
+        RANDOM: 
+            stepindex is random number in the list
+            do the same as above ^-
+
+    - code that checks the out of _OutOfBoundaryCount
+
+    
+
+ 
+
+    def Evaluate()
+    --------------------------
+
+
+
+
+    '''
+
+
+
+
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x]) for x in range(2)]
 
