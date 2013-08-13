@@ -8,4 +8,4 @@ while not stair.isFinished():
 
     trial = stair.GetNextTrial()
 
-    stair.EvaluateTrial(trial);
+    # stair.EvaluateTrial(trial);

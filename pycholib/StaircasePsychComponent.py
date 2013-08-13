@@ -1,5 +1,5 @@
 import random
-from Trial import *
+from Trial import * # not quite how it should be
 
 class StaircasePsychComponent ( object ):
 
@@ -14,41 +14,33 @@ class StaircasePsychComponent ( object ):
 
         # just set some values
         start = [0,100];
-        stepsize = 2;
+        stepsize = [5,4,3,2,1];
         minboundary = 0;
         maxboundary = 100;
 
-    '''
-        def init()
-    --------------------------
-    
-    - global trial counter = 0
-    - get the number of staircases we're initialising
-    - set active staircases
-    - for each staircase, set the parameters for each
- 
-    def Update()
-    --------------------------
-    
-    - create a new line with the data
-    - add those data to the data within the staircase
-        - However, I think the data should be saved centrally in a trial list
-    - Do the staircase tarmination rule here:
-        1. current trial is larger than max trials (is this total or just for this staircase?)
-        2. max reversals has been reached
-        3. max boundaries was hit
-    -- check global termination rule:
-        1. done = ~numel(sc.active)
-        there's a function to remove terminated staircases
-
-
-
-
-
-    '''
-
-
-
+        '''
+            def init()
+        --------------------------
+        
+        - global trial counter = 0
+        - get the number of staircases we're initialising
+        - set active staircases
+        - for each staircase, set the parameters for each
+     
+        def Update()
+        --------------------------
+        
+        - create a new line with the data
+        - add those data to the data within the staircase
+            - However, I think the data should be saved centrally in a trial list
+        - Do the staircase tarmination rule here:
+            1. current trial is larger than max trials (is this total or just for this staircase?)
+            2. max reversals has been reached
+            3. max boundaries was hit
+        -- check global termination rule:
+            1. done = ~numel(sc.active)
+            there's a function to remove terminated staircases
+        '''
 
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x]) for x in range(2)]
@@ -81,50 +73,11 @@ class StaircasePsychComponent ( object ):
         self._ActiveStairsList.pop(id);
 
 
-    def GetStimval(self):
-    
-    '''         
-    returns a new stimulus value on the basis of the previous trial
-
-    - get current stimulus value and direction (+ or -)
-    - determine the number of reversals for this staircase
-    - if number of trials is larger than one, do this, otherwise _InitialStimval
-
-    - determine steptype:
-        FIXED:
-            if we're not on the last item of the _FixedStepsizes array:
-                the index is equal to the number of reversals
-            otherwise just use the last item in the list (-1)
-            extract the stepsize from _FixedStepsizes [index]
-            calculate stimval: stimval+direction*stepsize;
-
-        RANDOM: 
-            stepindex is random number in the list
-            do the same as above ^-
-
-    - code that checks the out of _OutOfBoundaryCount:
-        if stimval smaller than mimimum stimval: 
-            increment the hit boundaries counter for this staircase
-            set the stimulus value to the minimum value (no change)
-        if larger than the maximum stimval:
-            increment the hit boundaries counter for this staircase:
-            set the stimulus value to the maximum value (no change)
-    
-    return stimval
-    '''
-
-
-        pass
-
-
-
-
-
     def GetNextTrial(self):
         
-    '''
-    def NewTrial()
-    --------------------------
+        '''
+        def NewTrial()
+        --------------------------
 
         - select a random trial from the active staircases -> becomes current
         - increment the trial count for current staircase
@@ -166,38 +119,6 @@ class StaircasePsychComponent ( object ):
     def Update(self):
         pass
 
-    def EvaluateTrial(self, trial):
-    
-    '''
-    --------------------------
-    Evaluates the response and preps the stimval of the stiarcase
-
-    sets the direction to 0 as a default
-    check the response (coded as either 0 or 1)
-
-    case 0:
-        increase the number of incorrect answer count
-        if staircase up count is one (not sure why this is) OR mod
-        (_CurrentStair.wrong, _CurrentStair.up) == 0:
-
-            This means there's a reversal, so save that stimval (if right >= down) 
-            reset the correct counter
-            set the direction to 1
-
-    case 1:
-        increase the number of correct answer count
-        if staircase down count is one (not sure why this is) or mod
-        (_CurrentStair.right, _CurrentStair.down) == 0:
-
-            That's a reversal! Save it (if wrong >= up)
-            reset the wrong counter
-            set the direction to -1
-
-    otherwise Raise exception.
-
-    update() 
-
-    '''
 
         # TODO: I don't actually think the trial parameter is needed.
 
@@ -248,7 +169,7 @@ class Staircase ( object ):
         self._InitialStimval = initial;
         self._CurrentStimval = initial;
  
-        self._Reversals = 0; # don't need reversal count - just return len(self._Reversals)
+        self._Reversals = list(); # don't need reversal count - just return len(self._Reversals)
         self._OutOfBoundaryCount = 0;
 
         self._RightSinceWrong = 0;
@@ -263,6 +184,130 @@ class Staircase ( object ):
         self._MaxTrials = 50;
         self._MaxReversals = 13;
     
+    ''' -- Properties, some of which are dynamic -- '''
+
+    @property
+    def NumReversals(self):
+        return len(self._Reversals)
+
+    @property
+    def NumStepSizes(self):
+        return len(self._FixedStepsizes)
+
+    ''' -- The meat of this class -- '''
+
+    def NewTrial(self):
+
+        ''' Gets a new trial based on previous parameters '''
+
+        # increment the trial counter
+        self.IncrementTrial()
+
+        # self.SetStimval()
+
+        # new trial instance
+        return Trial(trialid = self._TotalTrials, 
+                  staircaseid = self._StaircaseIndex,
+                  condition = self._Condition, 
+                  stimval = self._CurrentStimval,
+                  interval = self._Interval);
+
+
+    def SetStimval(self):
+    
+        '''         
+        returns a new stimulus value on the basis of the previous trial
+        '''
+  
+        # only do this if we're past trial one
+        if self._TrialNum > 1:
+
+            # first determine the 
+            if self._StepType == 'Fixed':
+
+                # if we're not at the end of the list, otherwise we just
+                # choose the last item of the _FixedStepsizes list.
+                if self.NumReversals < self.NumStepSizes:
+                    stepindex = self.NumReversals;
+                else:
+                    stepindex = self.NumStepSizes;
+
+                # get the stepsize from the _FixedStepsizes list
+                stepsize = self._FixedStepsizes[stepindex];
+
+            elif self._StepType == 'Random':
+
+                # choose a random step number
+                stepsize = self.GetRandomStepsize();
+
+            else:
+                raise ValueError('Invalid step step type (Fixed|Random)')
+
+            # now calculate the stimulus value 
+            stimval = self._CurrentStimval + (self._direction * stepsize)
+
+        else:
+
+            # otherwise just return the initial stimulus value
+            stimval = self._InitialStimval;
+
+
+        '''
+        TODO:
+        - code that checks the out of _OutOfBoundaryCount:
+            if stimval smaller than mimimum stimval: 
+                increment the hit boundaries counter for this staircase
+                set the stimulus value to the minimum value (no change)
+            if larger than the maximum stimval:
+                increment the hit boundaries counter for this staircase:
+                set the stimulus value to the maximum value (no change)
+        
+        return stimval
+        '''
+
+        pass
+
+    def GetRandomStepsize(self):
+        '''Returns a random stepsize from the _FixedStepsizes list'''
+        return self._FixedStepsizes[random.randint(1,self.NumStepSizes)];
+
+
+    def EvaluateTrial(self, trial):
+    
+        '''
+        --------------------------
+        Evaluates the response and preps the stimval of the stiarcase
+
+        sets the direction to 0 as a default
+        check the response (coded as either 0 or 1)
+
+        case 0:
+            increase the number of incorrect answer count
+            if staircase up count is one (not sure why this is) OR mod
+            (_CurrentStair.wrong, _CurrentStair.up) == 0:
+
+                This means there's a reversal, so save that stimval (if right >= down) 
+                reset the correct counter
+                set the direction to 1
+
+        case 1:
+            increase the number of correct answer count
+            if staircase down count is one (not sure why this is) or mod
+            (_CurrentStair.right, _CurrentStair.down) == 0:
+
+                That's a reversal! Save it (if wrong >= up)
+                reset the wrong counter
+                set the direction to -1
+
+        otherwise Raise exception.
+
+        update() 
+
+        '''
+
+
+    ''' -- Utility functions --- '''
+
     def GetTrialCount(self):
         return self._MaxTrials
     
