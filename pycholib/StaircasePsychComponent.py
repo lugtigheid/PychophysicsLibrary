@@ -1,5 +1,6 @@
 from Trial import * # not quite how it should be
 import numpy as np
+import matplotlib.pyplot as plt
 
 class StaircasePsychComponent ( object ):
 
@@ -90,7 +91,7 @@ class StaircasePsychComponent ( object ):
         cs = self.GetCurrentStaircase()
 
         # evaluate the response?
-        cs.EvaluateTrial(trial.Response)
+        cs.EvaluateTrial(trial)
 
         # this is staircase termination rule #1
         if cs._TrialNum < cs._MaxTrials:
@@ -121,7 +122,7 @@ class StaircasePsychComponent ( object ):
 
     def SimulateResponse(self):
         mu = 50
-        sg = 10
+        sg = 25
 
         # this generates a random response, I guess.
         return int(np.random.normal(mu,sg)<self._CurrentStair._CurrentStimval)
@@ -160,7 +161,9 @@ class Staircase ( object ):
         # these two determine the termination rule
         self._MaxTrials = maxtrials
         self._MaxReversals = maxreversals;
-    
+        
+        # keep track of the data
+        self._TrialList = list();
 
     ''' -- Properties, some of which are "dynamic" -- '''
 
@@ -264,19 +267,25 @@ class Staircase ( object ):
         # set the current stimulus value here
         self._CurrentStimval = stimval;
 
-        print 'stimval:', stimval, '(', self._StaircaseIndex, ')'
+        # print 'stimval:', stimval, '(', self._StaircaseIndex, ')'
 
-    def EvaluateTrial(self, response):
+    def EvaluateTrial(self, trial):
     
         '''
         Evaluates the response
         '''
 
+        # saves trial data to the actual staircase
+        self._TrialList.append(trial)
+
         # set a default value for the direction
         self._direction = 0;
 
+        # prepare a tuple to save to the _Reversals list
+        revItem = (self._TrialNum, self._CurrentStimval)
+
         # "wrong" answer
-        if response == 0:
+        if trial.Response == 0:
             
             self._nWrong += 1
 
@@ -285,7 +294,7 @@ class Staircase ( object ):
 
                 if self._nRight >= self._nDown:
                     
-                        self._Reversals.append(self._CurrentStimval)
+                        self._Reversals.append(revItem)
                         print '$ reversal:up'
 
 
@@ -296,7 +305,7 @@ class Staircase ( object ):
                 self._direction = 1
        
         # "correct" answer
-        elif response == 1:
+        elif trial.Response == 1:
 
             self._nRight += 1
 
@@ -305,7 +314,7 @@ class Staircase ( object ):
 
                 if self._nWrong >= self._nUp:
                     
-                    self._Reversals.append(self._CurrentStimval)
+                    self._Reversals.append(revItem)
                     print '$ reversal:down'
 
                 # reset the counter
@@ -318,24 +327,44 @@ class Staircase ( object ):
             raise ValueError('Incorrect response: needs to be 0 or 1')
 
 
-    def Update(self):
+    def PlotResults(self):
 
+        ''' plots the results'''
 
-        '''
-        - create a new line with the data
-        - add those data to the data within the staircase
-            - However, I think the data should be saved centrally in a trial list
-        - Do the staircase tarmination rule here:
-            1. current trial is larger than max trials (is this total or just for this staircase?)
-            2. max reversals has been reached
-            3. max boundaries was hit
-        -- check global termination rule:
-            1. done = ~numel(sc.active)
-            there's a function to remove terminated staircases
-        '''
+        print '- Now plotting results -'
 
+        # define two lists to contain the x-y values
+        x = list(); y = list()
 
+        # loop through and create a list of values
+        for idx, val in enumerate(self._TrialList):
+            
+            # creates list of x and y valeus
+            x.append(val._TrialID); y.append(val._Stimval)
 
+        # plot the stimulus values
+        plt.plot(x,y, color='k')
+
+        # reset these
+        x = list(); y = list();
+
+        # this can probably be done using a list comprehension
+        for idx, val in enumerate(self._Reversals):
+
+            # this creates a list of x and y values
+            x.append(val[0]); y.append(val[1])
+
+        # plot the reversals
+        plt.plot(x,y, color='r', marker='o', linestyle='none')
+
+        # plot the line that shows the mu
+        plt.axhline(y=50,color='k',ls='dashed')
+
+        # set limits
+        plt.ylim([self._MinBoundary,self._MaxBoundary])
+
+        # actually show these results
+        plt.show()
 
     ''' -- Utility functions --- '''
 
