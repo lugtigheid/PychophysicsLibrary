@@ -10,12 +10,14 @@ class StaircasePsychComponent ( object ):
         self._FinishedStairList = list()
         self._CurrentStaircaseID = 0;   # this refers to the _ActiveStairsList index
         self._TotalTrials = 0;
+        self._mu = 50;
+        self._sg = 15;
 
     def Initialise(self):
 
         # just set some values
         start = [100];
-        stepsizes = [5,4,3,2,1];
+        stepsizes = [10,5];
         minboundary = 0;
         maxboundary = 100;
 
@@ -77,11 +79,8 @@ class StaircasePsychComponent ( object ):
         # increment the total trial count
         self._TotalTrials += 1;
 
-        # new trial instance
-        t = self._CurrentStair.NewTrial()
-
-        # return the trial
-        return t;
+        # new trial instance and return the fucker
+        return self._CurrentStair.NewTrial()
 
     def Update(self, trial):
 
@@ -121,11 +120,16 @@ class StaircasePsychComponent ( object ):
         return np.random.randint(0,1)
 
     def SimulateResponse(self):
-        mu = 50
-        sg = 25
+
+
+        p = np.random.normal(self._mu,self._sg)
+        v = self._CurrentStair._CurrentStimval
+        r = int(p<v)
+
+        print p, v, r
 
         # this generates a random response, I guess.
-        return int(np.random.normal(mu,sg)<self._CurrentStair._CurrentStimval)
+        return r
       
 
 
@@ -343,7 +347,7 @@ class Staircase ( object ):
             x.append(val._TrialID); y.append(val._Stimval)
 
         # plot the stimulus values
-        plt.plot(x,y, color='k')
+        plt.plot(x,y, color='k', marker='.')
 
         # reset these
         x = list(); y = list();
