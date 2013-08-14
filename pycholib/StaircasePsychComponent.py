@@ -87,7 +87,7 @@ class StaircasePsychComponent ( object ):
         # return the trial
         return t;
 
-    def Update(self, trial):
+    def Update(self):
 
         # TODO: I don't actually think the trial parameter is needed.
 
