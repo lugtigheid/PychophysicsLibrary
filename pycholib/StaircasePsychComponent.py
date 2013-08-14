@@ -115,7 +115,9 @@ class StaircasePsychComponent ( object ):
     def GetRandomResponse(self):
         return random.randint(0,1)
 
-
+    def SimulateResponse(self):
+        mu = 50
+        sg = 5
 
 
 
@@ -208,7 +210,9 @@ class Staircase ( object ):
                 if self.NumReversals < self.NumStepSizes:
                     stepindex = self.NumReversals;
                 else:
-                    stepindex = self.NumStepSizes;
+                    stepindex = self.NumStepSizes-1;
+
+                print '-> stepindex=', stepindex
 
                 # get the stepsize from the _FixedStepsizes list
                 stepsize = self._FixedStepsizes[stepindex];
@@ -252,7 +256,7 @@ class Staircase ( object ):
         # set the current stimulus value here
         self._CurrentStimval = stimval;
 
-        print 's:', stimval
+        print 's:', stimval, ' - id=', self._StaircaseIndex
 
     def EvaluateTrial(self, response):
     
@@ -279,6 +283,8 @@ class Staircase ( object ):
                 # reset the counter
                 self._Right = 0;
 
+                print '$ reversal:up'
+
                 # set the step direction to up (+1)
                 self._direction = 1
        
@@ -297,6 +303,8 @@ class Staircase ( object ):
 
                 # reset the counter
                 self._nWrong = 0;
+
+                print '$ reversal:down'
 
                 # set the step direction to up (+1)
                 self._direction = -1
