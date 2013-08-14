@@ -1,5 +1,5 @@
-import random
 from Trial import * # not quite how it should be
+import numpy as np
 
 class StaircasePsychComponent ( object ):
 
@@ -13,7 +13,7 @@ class StaircasePsychComponent ( object ):
     def Initialise(self):
 
         # just set some values
-        start = [0,100];
+        start = [100];
         stepsizes = [5,4,3,2,1];
         minboundary = 0;
         maxboundary = 100;
@@ -31,15 +31,17 @@ class StaircasePsychComponent ( object ):
 
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x], 
-                                  fixedstepsize=stepsizes) for x in range(2)]
+                                  fixedstepsize=stepsizes) for x in range(1)]
 
     def SelectRandomStaircase(self):
 
         # how many are left in the active list?
         tmpRange = len(self._ActiveStairsList)
 
-        # get a random number within that range
-        self._CurrentStaircaseID = random.randint(0, tmpRange-1)
+        if tmpRange > 1:
+            self._CurrentStaircaseID = np.random.randint(0, tmpRange-1)
+        else: 
+            self._CurrentStaircaseID = 0
 
         # return a random staircase from the active stairslist
         return self._ActiveStairsList[self._CurrentStaircaseID];
@@ -62,6 +64,8 @@ class StaircasePsychComponent ( object ):
 
 
     def GetNextTrial(self):
+
+        print '------------- New trial ---------------'
 
         ''' Gets a random staircase from the active staircases and gets 
             new trial parameters. Returns a trial and sets current stair id. '''
@@ -113,13 +117,15 @@ class StaircasePsychComponent ( object ):
         return len(self._ActiveStairsList) == 0
 
     def GetRandomResponse(self):
-        return random.randint(0,1)
+        return np.random.randint(0,1)
 
     def SimulateResponse(self):
         mu = 50
-        sg = 5
+        sg = 10
 
-
+        # this generates a random response, I guess.
+        return int(np.random.normal(mu,sg)<self._CurrentStair._CurrentStimval)
+      
 
 
 
@@ -127,7 +133,7 @@ class Staircase ( object ):
 
     def __init__(self, staircaseID=0, steptype='fixed', condition=0, 
                  interval=0, initial=0, minboundary=0, maxboundary=100, 
-                 nUp=1, nDown=1, fixedstepsize=0):
+                 nup=1, ndown=3, fixedstepsize=0, maxtrials=100, maxreversals=13):
 
         self._MinBoundary = minboundary;
         self._MaxBoundary = maxboundary;
@@ -135,8 +141,8 @@ class Staircase ( object ):
 
         self._StepType = steptype;
         self._FixedStepsizes = fixedstepsize;
-        self._nUp = 1;
-        self._nDown = 1;
+        self._nUp = nup;
+        self._nDown = ndown;
 
         self._Condition = condition;
         self._nIntervals = interval;
@@ -152,8 +158,8 @@ class Staircase ( object ):
         self._StaircaseIndex = staircaseID;
 
         # these two determine the termination rule
-        self._MaxTrials = 50;
-        self._MaxReversals = 13;
+        self._MaxTrials = maxtrials
+        self._MaxReversals = maxreversals;
     
 
     ''' -- Properties, some of which are "dynamic" -- '''
@@ -212,8 +218,6 @@ class Staircase ( object ):
                 else:
                     stepindex = self.NumStepSizes-1;
 
-                print '-> stepindex=', stepindex
-
                 # get the stepsize from the _FixedStepsizes list
                 stepsize = self._FixedStepsizes[stepindex];
 
@@ -244,6 +248,8 @@ class Staircase ( object ):
             # set the stimval to the _MinBoundary
             stimval = self._MinBoundary;
 
+            print '=== hit min', self._OutOfBoundaryCount, '==='
+
         # here we hit the upper limit
         if stimval > self._MaxBoundary:
 
@@ -253,10 +259,12 @@ class Staircase ( object ):
             # set the stimval to the _MaxBoundary
             stimval = self._MaxBoundary;
 
+            print '=== hit max', self._OutOfBoundaryCount, '==='
+
         # set the current stimulus value here
         self._CurrentStimval = stimval;
 
-        print 's:', stimval, ' - id=', self._StaircaseIndex
+        print 'stimval:', stimval, '(', self._StaircaseIndex, ')'
 
     def EvaluateTrial(self, response):
     
@@ -272,18 +280,17 @@ class Staircase ( object ):
             
             self._nWrong += 1
 
-            # this demarcates a reversal, so we save it and reset
             # everything % 1 evaluates to true, so we need this
             if self._nUp == 1 or self._nWrong % self._nUp == 0:
 
                 if self._nRight >= self._nDown:
                     
                         self._Reversals.append(self._CurrentStimval)
+                        print '$ reversal:up'
+
 
                 # reset the counter
                 self._Right = 0;
-
-                print '$ reversal:up'
 
                 # set the step direction to up (+1)
                 self._direction = 1
@@ -293,18 +300,16 @@ class Staircase ( object ):
 
             self._nRight += 1
 
-            # this demarcates a reversal, so we save it and reset
-            # everything % 1 evaluates to true, so we need this
+             # everything % 1 evaluates to true, so we need this
             if self._nDown == 1 or self._nRight % self._nDown == 0:
 
                 if self._nWrong >= self._nUp:
                     
                     self._Reversals.append(self._CurrentStimval)
+                    print '$ reversal:down'
 
                 # reset the counter
                 self._nWrong = 0;
-
-                print '$ reversal:down'
 
                 # set the step direction to up (+1)
                 self._direction = -1

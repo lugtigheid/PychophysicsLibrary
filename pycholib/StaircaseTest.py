@@ -8,6 +8,10 @@ while not Exp.isFinished():
 
     trial = Exp.GetNextTrial()
 
-    trial.Response = Exp.GetRandomResponse()
+    trial.Response = Exp.SimulateResponse()
+
+    print '----->', trial.Response
 
     Exp.Update(trial);
+
+print Exp._CurrentStair._Reversals
