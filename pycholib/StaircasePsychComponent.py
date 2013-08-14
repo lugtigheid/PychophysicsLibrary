@@ -14,7 +14,7 @@ class StaircasePsychComponent ( object ):
 
         # just set some values
         start = [0,100];
-        fixedstepsize = [5,4,3,2,1];
+        stepsizes = [5,4,3,2,1];
         minboundary = 0;
         maxboundary = 100;
 
@@ -30,7 +30,8 @@ class StaircasePsychComponent ( object ):
         '''
 
         # set up the staircases for now
-        self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x]) for x in range(2)]
+        self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x], 
+                                  fixedstepsize=stepsizes) for x in range(2)]
 
     def SelectRandomStaircase(self):
 
@@ -54,7 +55,7 @@ class StaircasePsychComponent ( object ):
         # put this in the finished list
         self._FinishedStairList.append(tmpStair);
 
-        print 'Removing #', self._ActiveStairsList[id]._StaircaseIndex
+        print '-> Removing #', self._ActiveStairsList[id]._StaircaseIndex
 
         # remove it from the active list
         self._ActiveStairsList.pop(id);
@@ -68,39 +69,30 @@ class StaircasePsychComponent ( object ):
         # select one staircase from the list
         self._CurrentStair = self.SelectRandomStaircase();
 
-        # increment the trial counter
-        self._CurrentStair.IncrementTrial()
-
         # increment the total trial count
         self._TotalTrials += 1;
 
         # new trial instance
-        t = Trial(trialid = self._TotalTrials, 
-                  staircaseid = self._CurrentStair._StaircaseIndex,
-                  condition = self._CurrentStair._Condition, 
-                  stimval = self._CurrentStair._CurrentStimval,
-                  interval = self._CurrentStair._nIntervals);
-
-        # print all trial parameters
-        print t;
+        t = self._CurrentStair.NewTrial()
 
         # return the trial
         return t;
 
-    def Update(self):
+    def Update(self, trial):
 
-        # TODO: I don't actually think the trial parameter is needed.
+        # TODO: this should probably save the trial to the trial list
 
         # store the current staircase
         cs = self.GetCurrentStaircase()
 
-        # bit of debugging
-        print cs._TrialNum, cs._MaxTrials, len(self._ActiveStairsList);
+        # evaluate the response?
+        cs.EvaluateTrial(trial.Response)
 
         # this is staircase termination rule #1
         if cs._TrialNum < cs._MaxTrials:
             pass;
         else:
+            # we do this by ID, otherwise it's too tricky
             self.DeactivateStaircase(self._CurrentStaircaseID);
 
     def GetRemainingTrials(self):
@@ -119,6 +111,14 @@ class StaircasePsychComponent ( object ):
 
         # this is the termination rule: no more active staircases
         return len(self._ActiveStairsList) == 0
+
+    def GetRandomResponse(self):
+        return random.randint(0,1)
+
+
+
+
+
 
 
 class Staircase ( object ):
@@ -141,8 +141,8 @@ class Staircase ( object ):
         self._InitialStimval = initial;
         self._CurrentStimval = initial;
 
-        self._Right = 0;
-        self._Wrong = 0;
+        self._nRight = 0;
+        self._nWrong = 0;
         self._Reversals = list();
         self._direction = 0;
         self._TrialNum = 0;
@@ -164,6 +164,10 @@ class Staircase ( object ):
     def NumStepSizes(self):
         return len(self._FixedStepsizes)
 
+    @property
+    def NumTrials(self):
+        return self._TrialNum;
+
 
     ''' -- The meat of this class -- '''
 
@@ -174,14 +178,14 @@ class Staircase ( object ):
         # increment the trial counter
         self.IncrementTrial()
 
-        # self.SetStimval()
+        self.SetStimval()
 
         # new trial instance
-        return Trial(trialid = self._TotalTrials, 
+        return Trial(trialid = self.NumTrials, 
                   staircaseid = self._StaircaseIndex,
                   condition = self._Condition, 
                   stimval = self._CurrentStimval,
-                  interval = self._Interval);
+                  interval = self._nIntervals);
 
 
     def SetStimval(self):
@@ -194,7 +198,7 @@ class Staircase ( object ):
         if self._TrialNum > 1:
 
             # make sure the steptype is a lowercase string
-            steptype = self._StepType.lowercase()
+            steptype = self._StepType.lower()
 
             # first determine the 
             if steptype == 'fixed':
@@ -248,7 +252,7 @@ class Staircase ( object ):
         # set the current stimulus value here
         self._CurrentStimval = stimval;
 
-
+        print 's:', stimval
 
     def EvaluateTrial(self, response):
     

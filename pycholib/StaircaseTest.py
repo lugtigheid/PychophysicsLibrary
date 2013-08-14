@@ -1,11 +1,13 @@
 from StaircasePsychComponent import *
 
-stair = StaircasePsychComponent();
+Exp = StaircasePsychComponent();
 
-stair.Initialise()
+Exp.Initialise()
 
-while not stair.isFinished():
+while not Exp.isFinished():
 
-    trial = stair.GetNextTrial()
+    trial = Exp.GetNextTrial()
 
-    stair.Update();
+    trial.Response = Exp.GetRandomResponse()
+
+    Exp.Update(trial);
