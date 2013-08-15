@@ -11,15 +11,17 @@ class StaircasePsychComponent ( object ):
         self._CurrentStaircaseID = 0;   # this refers to the _ActiveStairsList index
         self._TotalTrials = 0;
         self._mu = 50;
-        self._sg = 15;
+        self._sg = 20;
 
     def Initialise(self):
 
         # just set some values
         start = [100];
-        stepsizes = [10,5];
+        stepsizes = [9];
         minboundary = 0;
         maxboundary = 100;
+        n_up = 1;
+        n_down = 1;
 
         '''
             def init()
@@ -34,7 +36,7 @@ class StaircasePsychComponent ( object ):
 
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x], 
-                                  fixedstepsize=stepsizes) for x in range(1)]
+                                  fixedstepsize=stepsizes, up=n_up, down = n_down) for x in range(1)]
 
     def SelectRandomStaircase(self):
 
@@ -93,8 +95,8 @@ class StaircasePsychComponent ( object ):
         cs.EvaluateTrial(trial)
 
         # this is staircase termination rule #1
-        if cs._TrialNum < cs._MaxTrials:
-            pass;
+        if cs._MaxTrials > cs._TrialNum:
+            pass
         else:
             # we do this by ID, otherwise it's too tricky
             self.DeactivateStaircase(self._CurrentStaircaseID);
@@ -138,16 +140,18 @@ class Staircase ( object ):
 
     def __init__(self, staircaseID=0, steptype='fixed', condition=0, 
                  interval=0, initial=0, minboundary=0, maxboundary=100, 
-                 nup=1, ndown=3, fixedstepsize=0, maxtrials=100, maxreversals=13):
+                 up=1, down=3, fixedstepsize=0, maxtrials=100, 
+                 maxreversals=13, maxboundaryhit=3):
 
         self._MinBoundary = minboundary;
         self._MaxBoundary = maxboundary;
         self._OutOfBoundaryCount = 0;
+        self._MaxBoundaryHit = maxboundaryhit
 
         self._StepType = steptype;
         self._FixedStepsizes = fixedstepsize;
-        self._nUp = nup;
-        self._nDown = ndown;
+        self._nUp = up;
+        self._nDown = down;
 
         self._Condition = condition;
         self._nIntervals = interval;
@@ -201,6 +205,23 @@ class Staircase ( object ):
                   condition = self._Condition, 
                   stimval = self._CurrentStimval,
                   interval = self._nIntervals);
+
+    def Terminate(self):
+
+        terminate = False
+
+        print self._TrialNum, self._MaxTrials
+        if self._TrialNum < self._MaxTrials:
+            print 'Maximum trials reached. Terminating.'
+            terminate = True
+
+        #if self.NumReversals == self._MaxReversals:
+        #    print 'Maximum reversals reached. Terminating.'
+        #    terminate = True
+
+        #if self._MaxBoundaryHit == self._OutOfBoundaryCount:
+        #    print 'Maximum boundary hit reached. Terminating.'
+        #    terminate = True
 
 
     def SetStimval(self):
