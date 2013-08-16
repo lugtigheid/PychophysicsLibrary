@@ -11,17 +11,17 @@ class StaircasePsychComponent ( object ):
         self._CurrentStaircaseID = 0;   # this refers to the _ActiveStairsList index
         self._TotalTrials = 0;
         self._mu = 50;
-        self._sg = 20;
+        self._sg = 10;
 
     def Initialise(self):
 
         # just set some values
         start = [100];
-        stepsizes = [9];
+        stepsizes = [10,10,9,7,5,3];
         minboundary = 0;
         maxboundary = 100;
         n_up = 1;
-        n_down = 1;
+        n_down = 3;
 
         '''
             def init()
@@ -30,7 +30,7 @@ class StaircasePsychComponent ( object ):
         - global trial counter = 0
         - get the number of staircases we're initialising
         - set active staircases
-        - for each staircase, set the parameters for each
+        - for each staircase, set the parameters
      
         '''
 
@@ -94,12 +94,15 @@ class StaircasePsychComponent ( object ):
         # evaluate the response?
         cs.EvaluateTrial(trial)
 
-        # this is staircase termination rule #1
-        if cs._MaxTrials > cs._TrialNum:
-            pass
-        else:
+        cs.Terminate()
+
+        # this is the staircase termination rule
+        if cs.Terminate():
+
             # we do this by ID, otherwise it's too tricky
             self.DeactivateStaircase(self._CurrentStaircaseID);
+
+
 
     def GetRemainingTrials(self):
         # return a count of the total number of trials for logging
@@ -141,7 +144,7 @@ class Staircase ( object ):
     def __init__(self, staircaseID=0, steptype='fixed', condition=0, 
                  interval=0, initial=0, minboundary=0, maxboundary=100, 
                  up=1, down=3, fixedstepsize=0, maxtrials=100, 
-                 maxreversals=13, maxboundaryhit=3):
+                 maxreversals=13, maxboundaryhit=3, ignorereversals=3):
 
         self._MinBoundary = minboundary;
         self._MaxBoundary = maxboundary;
@@ -167,8 +170,9 @@ class Staircase ( object ):
         self._StaircaseIndex = staircaseID;
 
         # these two determine the termination rule
-        self._MaxTrials = maxtrials
+        self._MaxTrials = maxtrials;
         self._MaxReversals = maxreversals;
+        self._IgnoreReversals = ignorereversals;
         
         # keep track of the data
         self._TrialList = list();
@@ -188,6 +192,9 @@ class Staircase ( object ):
         return self._TrialNum;
 
 
+
+
+
     ''' -- The meat of this class -- '''
 
     def NewTrial(self):
@@ -197,6 +204,7 @@ class Staircase ( object ):
         # increment the trial counter
         self.IncrementTrial()
 
+        # set the stimulus value here
         self.SetStimval()
 
         # new trial instance
@@ -208,27 +216,27 @@ class Staircase ( object ):
 
     def Terminate(self):
 
-        terminate = False
+        ''' Determines if this staircase should terminate '''
 
-        print self._TrialNum, self._MaxTrials
-        if self._TrialNum < self._MaxTrials:
-            print 'Maximum trials reached. Terminating.'
-            terminate = True
+        # maximum number of trials has been reached
+        if self._MaxTrials <= self.NumTrials:
+            return True
 
-        #if self.NumReversals == self._MaxReversals:
-        #    print 'Maximum reversals reached. Terminating.'
-        #    terminate = True
+        # maximum number of reversals has been reached
+        if self._MaxReversals <= self.NumReversals:
+            return True
 
-        #if self._MaxBoundaryHit == self._OutOfBoundaryCount:
-        #    print 'Maximum boundary hit reached. Terminating.'
-        #    terminate = True
+        # maximum number of boundary hits has been reached
+        if self._MaxBoundaryHit <= self._OutOfBoundaryCount:
+            return True
+
+        # this is the default return: do not terminate
+        return False
 
 
     def SetStimval(self):
     
-        '''         
-        sets a new stimulus value in _CurrentStimval
-        '''
+        ''' sets a new stimulus value in _CurrentStimval '''
   
         # only do this if we're past trial one
         if self._TrialNum > 1:
@@ -307,7 +315,7 @@ class Staircase ( object ):
         self._direction = 0;
 
         # prepare a tuple to save to the _Reversals list
-        revItem = (self._TrialNum, self._CurrentStimval)
+        revItem = (self._TrialNum, self._CurrentStimval, trial.Response)
 
         # "wrong" answer
         if trial.Response == 0:
@@ -319,12 +327,12 @@ class Staircase ( object ):
 
                 if self._nRight >= self._nDown:
                     
-                        self._Reversals.append(revItem)
-                        print '$ reversal:up'
+                    self._Reversals.append(revItem)
+                    print '$ reversal:up'
 
 
                 # reset the counter
-                self._Right = 0;
+                self._nRight = 0;
 
                 # set the step direction to up (+1)
                 self._direction = 1
@@ -368,7 +376,7 @@ class Staircase ( object ):
             x.append(val._TrialID); y.append(val._Stimval)
 
         # plot the stimulus values
-        plt.plot(x,y, color='k', marker='.')
+        plt.plot(x,y, color='k', marker='o', ls='-')
 
         # reset these
         x = list(); y = list();
@@ -377,19 +385,35 @@ class Staircase ( object ):
         for idx, val in enumerate(self._Reversals):
 
             # this creates a list of x and y values
-            x.append(val[0]); y.append(val[1])
+            # x.append(val[0]); y.append(val[1])
 
-        # plot the reversals
-        plt.plot(x,y, color='r', marker='o', linestyle='none')
+            if val[2] == 0: 
+                plt.plot(val[0], val[1], marker='o', color='r')
+            else:
+                plt.plot(val[0], val[1], marker='o', color='g')
 
         # plot the line that shows the mu
         plt.axhline(y=50,color='k',ls='dashed')
 
         # set limits
         plt.ylim([self._MinBoundary,self._MaxBoundary])
+        plt.xlim([1, self.NumTrials])
 
         # actually show these results
-        plt.show()
+        plt.savefig('plot.pdf')
+
+    def Stats(self):
+
+        ''' Provides simple stats for the current staircase '''
+
+        # extract the relevant values from the reversals
+        vals = [x[1] for x in self._Reversals]
+
+        # return the mean and standard deviation
+        print round(np.mean(vals[self._IgnoreReversals:]),2), round(np.std(vals[self._IgnoreReversals:]), 2)
+
+
+
 
     ''' -- Utility functions --- '''
 

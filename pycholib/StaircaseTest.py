@@ -25,3 +25,6 @@ while not Exp.isFinished():
 
 # plot the results
 Exp._CurrentStair.PlotResults()
+
+# gets the standard deviation and mean for staircase
+Exp._CurrentStair.Stats()
