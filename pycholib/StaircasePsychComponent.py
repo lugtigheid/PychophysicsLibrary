@@ -23,28 +23,21 @@ class StaircasePsychComponent ( object ):
         n_up = 1;
         n_down = 3;
 
-        '''
-            def init()
-        --------------------------
-        
-        - global trial counter = 0
-        - get the number of staircases we're initialising
-        - set active staircases
-        - for each staircase, set the parameters
-     
-        '''
-
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x], 
                                   fixedstepsize=stepsizes, up=n_up, down = n_down) for x in range(1)]
 
+    ''' --- Properties --- '''
+
+    @property
+    def nActiveStairs(self):
+        return len(self._ActiveStairsList)
+
     def SelectRandomStaircase(self):
 
         # how many are left in the active list?
-        tmpRange = len(self._ActiveStairsList)
-
-        if tmpRange > 1:
-            self._CurrentStaircaseID = np.random.randint(0, tmpRange-1)
+        if self.nActiveStairs > 1:
+            self._CurrentStaircaseID = np.random.randint(0, self.nActiveStairs-1)
         else: 
             self._CurrentStaircaseID = 0
 
@@ -62,15 +55,11 @@ class StaircasePsychComponent ( object ):
         # put this in the finished list
         self._FinishedStairList.append(tmpStair);
 
-        print '-> Removing #', self._ActiveStairsList[id]._StaircaseIndex
-
         # remove it from the active list
         self._ActiveStairsList.pop(id);
 
 
     def GetNextTrial(self):
-
-        print '------------- New trial ---------------'
 
         ''' Gets a random staircase from the active staircases and gets 
             new trial parameters. Returns a trial and sets current stair id. '''
@@ -102,8 +91,6 @@ class StaircasePsychComponent ( object ):
             # we do this by ID, otherwise it's too tricky
             self.DeactivateStaircase(self._CurrentStaircaseID);
 
-
-
     def GetRemainingTrials(self):
         # return a count of the total number of trials for logging
         # if _ActiveStairsList's length is > 0, this module has been initalized
@@ -119,24 +106,19 @@ class StaircasePsychComponent ( object ):
     def isFinished(self):
 
         # this is the termination rule: no more active staircases
-        return len(self._ActiveStairsList) == 0
+        return self.nActiveStairs == 0
 
     def GetRandomResponse(self):
+
+        # just returns a random response (0|1)
         return np.random.randint(0,1)
 
     def SimulateResponse(self):
 
-
+        # It's like magic!
         p = np.random.normal(self._mu,self._sg)
         v = self._CurrentStair._CurrentStimval
-        r = int(p<v)
-
-        print p, v, r
-
-        # this generates a random response, I guess.
-        return r
-      
-
+        return int(p<v)
 
 
 class Staircase ( object ):
@@ -190,10 +172,6 @@ class Staircase ( object ):
     @property
     def NumTrials(self):
         return self._TrialNum;
-
-
-
-
 
     ''' -- The meat of this class -- '''
 
@@ -284,8 +262,6 @@ class Staircase ( object ):
             # set the stimval to the _MinBoundary
             stimval = self._MinBoundary;
 
-            print '=== hit min', self._OutOfBoundaryCount, '==='
-
         # here we hit the upper limit
         if stimval > self._MaxBoundary:
 
@@ -294,8 +270,6 @@ class Staircase ( object ):
 
             # set the stimval to the _MaxBoundary
             stimval = self._MaxBoundary;
-
-            print '=== hit max', self._OutOfBoundaryCount, '==='
 
         # set the current stimulus value here
         self._CurrentStimval = stimval;
@@ -327,9 +301,8 @@ class Staircase ( object ):
 
                 if self._nRight >= self._nDown:
                     
+                    # add this to the reversal list
                     self._Reversals.append(revItem)
-                    print '$ reversal:up'
-
 
                 # reset the counter
                 self._nRight = 0;
@@ -347,8 +320,8 @@ class Staircase ( object ):
 
                 if self._nWrong >= self._nUp:
                     
+                    # add this to the reversal list
                     self._Reversals.append(revItem)
-                    print '$ reversal:down'
 
                 # reset the counter
                 self._nWrong = 0;
@@ -409,15 +382,16 @@ class Staircase ( object ):
         # extract the relevant values from the reversals
         vals = [x[1] for x in self._Reversals]
 
+        # get just the last (i.e. ignore the first couple)
+        rev = vals[self._IgnoreReversals:]
+
         # return the mean and standard deviation
-        print round(np.mean(vals[self._IgnoreReversals:]),2), round(np.std(vals[self._IgnoreReversals:]), 2)
-
-
-
+        print 'STATS:\nMean: %.2f\nStd: %.2f' % (np.mean(rev), np.std(rev))
 
     ''' -- Utility functions --- '''
 
     def GetRandomStepsize(self):
+
         '''Returns a random stepsize from the _FixedStepsizes list'''
         return self._FixedStepsizes[random.randint(1,self.NumStepSizes)];
 

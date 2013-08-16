@@ -1,9 +1,5 @@
 from StaircasePsychComponent import *
 
-# Version checking - I use 2.7.3 EPD
-import platform
-print(platform.python_version())
-
 # new instance of the StaircasePsychComponent
 Exp = StaircasePsychComponent();
 
