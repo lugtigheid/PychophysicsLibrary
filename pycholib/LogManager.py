@@ -5,8 +5,6 @@ import os
 import sys
 import datetime
 
-import string
-
 # TODO: Should open a write to a file when started
 
 class LoggingComponent(object):
@@ -66,7 +64,7 @@ class LoggingComponent(object):
         
         return
     
-    def Start(self):
+    def StartLogging(self):
         ''' Start logging and write the header '''
         
         if not self._started:
@@ -92,7 +90,7 @@ class LoggingComponent(object):
             
             print("ERROR: This log object is already started.")
         
-    def Add(self, **kwargs):
+    def AddRecord(self, **kwargs):
         
         if self._started:
             
@@ -128,7 +126,7 @@ class LoggingComponent(object):
             
             print("ERROR: Can not add entry, log object has not be started yet.")
         
-    def Stop(self):
+    def StopLogging(self):
         
         if self._started:
             
