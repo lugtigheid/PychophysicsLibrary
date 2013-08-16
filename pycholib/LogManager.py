@@ -11,25 +11,15 @@ import string
 
 class LoggingComponent(object):
 
-    def __init__(self, OutFilePath, ExpName='Dummy Experiment', ExpVer=1.0, 
-                 SubjName='abc', SubjExtraInfo=str(), CondVals=dict(), StimVals=list(), 
-                 Intervals='2AFC', RepCount=1, TrialCount=100, HeaderTemplateFile=None, 
-                 Verbose=False, NewLineChar=None):
+    def __init__(self, OutFilePath, HeaderTemplateFile=None, Verbose=False, NewLineChar=None):
                      
         ''' Contructor for logging object '''
         
         self._OutFilePath = OutFilePath
-        self._OutFile = None
-
-        self._ExpName = ExpName
-        self._ExpVer = ExpVer
-        self._SubjName = SubjName
-        self._SubjExtraInfo = SubjExtraInfo
-        self._CondVals = CondVals
-        self._StimVals = StimVals
-        self._Intervals = Intervals
-        self._RepCount = RepCount
-        self._TrialCount = TrialCount
+        
+        # we will store data lines in a dictionary
+        self._data_registry = dict() # no data stored
+        self._entry_idx = 0
         
         self._Verbose = Verbose
 
@@ -65,63 +55,38 @@ class LoggingComponent(object):
         self._HeaderFields = args
     
     def SetDataFields(self, *args):
-        self._DataFields = args
+        if not self._started:
+            self._DataFields = args
+        else:
+            print("ERROR: Cannot set data fields once Start() has been called.")
+    
+    def _new_entry(self, data):
+        self._data_registry[self._entry_idx] = data
+        self._entry_idx += 1
+        
+        return
     
     def Start(self):
         ''' Start logging and write the header '''
         
         if not self._started:
             
+            if self._DataFields == None:
+                
+                print("ERROR: No data fields specifed for logging, can not start.")
+                return # just exit
+            
             # starting timestamp
-            start_timestp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
-            # open header file and get the text
-            header_file = open(self._HeaderTemplateFile, 'r')
-            header_text = header_file.read()
-            header_file.close()
-            
-            if self._new_line_char != '\n':
-                header_text.replace('\n', self._new_line_char)
-            
-            header_template = string.Template(header_text)
-            
-            brk_line = '='*60 # break line
-            
-            hdat = header_template.substitute(exp_name=self._ExpName, 
-                                              exp_ver=self._ExpVer, 
-                                              exp_date=start_timestp, 
-                                              subject_name=self._SubjName, 
-                                              subject_details=self._SubjExtraInfo, 
-                                              cond_count=len(self._CondVals.keys()),
-                                              cond_val=self._CondVals, 
-                                              stim_vals=self._StimVals, 
-                                              intervals=self._Intervals,
-                                              rep_count=self._RepCount, 
-                                              trial_count=self._TrialCount,
-                                              sep_line=brk_line)
-            
-            if self._Verbose: print(hdat)
-            
-            # flag this log object at started
-            self._OutFile = open(self._OutFilePath, 'a')
+            ts_frmt = '# Experiment started at: %Y-%m-%d %H:%M:%S{}'.format(self._new_line_char)
+            self._new_entry(datetime.datetime.now().strftime(ts_frmt))
+
             self._started = True
             
-            if os.path.getsize(self._OutFilePath) > 0:
-                self._OutFile.write(self._new_line_char)
+            # open header file and get the text
+            #if self._Verbose: print(hdat)
             
-            self._OutFile.write(hdat)
-            data_title_line = str()
-            n = 0
-            for field in self._DataFields:
-                if n > 0:
-                    data_title_line = '{0}    {1}'.format(data_title_line, field)
-                else:
-                    data_title_line = '# {0}'.format(field)
-                    n += 1
-            
-            self._OutFile.write(data_title_line)
-            self._OutFile.write(self._new_line_char)
-            self._OutFile.write(self._new_line_char)
+            #if os.path.getsize(self._OutFilePath) > 0:
+                #self._OutFile.write(self._new_line_char)
             
         else:
             
@@ -132,7 +97,6 @@ class LoggingComponent(object):
         if self._started:
             
             if len(kwargs.keys()) == len(self._DataFields): # check if fields are missing
-            
                 # find matching indices specified by 'SetDataFields()'        
                 key_map = dict()
                 
@@ -143,7 +107,8 @@ class LoggingComponent(object):
                         print("ERROR: Invalid field name specified.")
                         return
                 
-                # create a sorted list of output values based on SetDataFields() indices
+                # create a sorted list of output values based on SetDataFields() indices.
+                # this gives some stability to the output
                 out_list = list()
                 
                 n = 0
@@ -151,20 +116,11 @@ class LoggingComponent(object):
                     out_list.append(key_map[n])
                     n += 1
                 
-                # write data to file
-                data_field_line = str()
-                n = 0
-                for field in out_list:
-                    if n > 0:
-                        data_field_line = '{0}\t{1}'.format(data_field_line, field)
-                    else:
-                        data_field_line = field
-                        n += 1
-                
-                self._OutFile.write(data_field_line)
-                self._OutFile.write(self._new_line_char)
+                # add it to _data_registry
+                self._new_entry(out_list)
             
             else:
+                
                 raise KeyError
                 print("ERROR: Field(s) missing, check if all fields are specified.")
             
@@ -175,44 +131,85 @@ class LoggingComponent(object):
     def Stop(self):
         
         if self._started:
-            stop_timestp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            self._OutFile.write(self._new_line_char)
-            self._OutFile.write("# {0}: Experiment ended{1}".format(stop_timestp, self._new_line_char))
-                                
+            ts_frmt = '{}# Experiment ended at: %Y-%m-%d %H:%M:%S'.format(self._new_line_char)
+            self._new_entry(datetime.datetime.now().strftime(ts_frmt))
+
             self._started = False
             
-            self._OutFile.close()
-            self._OutFile = None # set to none
-        
         else:
             
             print("ERROR: This log object has not been started.")
-
-    def __del__(self):
-        # we still have a file open, something wrong occured and we have to try
-        # to close the file
-        if self._OutFile != None:
-            warn_msg = "WARNING: LogManager has closed unexpectedly, either the program ended without calling 'Stop()' or something bad occured."
-            self._OutFile.write(self._new_line_char)
-            self._OutFile.write(warn_msg)
-            self._OutFile.write(self._new_line_char)
-            self._OutFile.close()
+    
+    def DumpToFile(self, header_text=None, f_path=None, format='csv', overwrite=False):
+        
+        # There are multiple format modes to be implimented:
+        # ==================================================
+        # CSV : Comma-seperatated values with no spaces (works)
+        # CSV2 : Comma-seperatated values with a space
+        # TSV : Tab-seperated values
+        # XML : Good format to store data with
+        
+        if f_path == None: f_path = self._OutFilePath
+        
+        if overwrite:
+            # open, blank, then close the file
+            f_dat = open(f_path, 'w')
+            f_dat.write('')
+            f_dat.close()
+        
+        f_dat = open(f_path, 'a') # use append mode
+        
+        #
+        # TODO: Header of some sort needs to be written here.
+        #   
+        
+        if format == 'csv':
             
-            print(warn_msg)
+            # if the file is not empty, add a newline char to space out data
+            if os.path.getsize(f_path) > 0: f_dat.write(self._new_line_char)
+                
+            for key, item in self._data_registry.items():
+                if isinstance(item, list):
+                    data_line = str()
+                    n = 0
+                    for field in item:
+                        if n > 0:
+                            data_line = '{0},{1}'.format(data_line, field)
+                        else:
+                            data_line = field
+                            n += 1
+                    
+                    data_line = '{0}{1}'.format(data_line, self._new_line_char)
+                    
+                else:
+                    data_line = '{0}{1}'.format(item, self._new_line_char)
+                
+                f_dat.write(data_line)
+            
+            f_dat.close()
+            
+        else:
+            
+            # need a proper exception here
+            print("ERROR: Unsupported format type.")
+            
+    def __del__(self):
+        pass
 
 def main():
     # test driver
-    test_log = LoggingComponent('logging_test.txt', ExpName='Dummy Experiment',
-                                CondVals={0: "INFRONT", 1: "BEHIND"}, StimVals=[0.01, 0.02, 0.05, 0.1])
+    test_log = LoggingComponent('logging_test.txt')
     
     test_log.SetDataFields('Trial', 'Cond', 'StimLevel', 'Interv', 'Response', 'Correct', 'Latency')
     
     test_log.Start()
     test_log.Add(Trial=0, Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
     test_log.Add(Trial=1, Cond=0, Interv=2, StimLevel=0.1, Response=1, Correct=1, Latency=0.3252)
-    test_log.Add(Trial=2, Cond=1, Interv=2, StimLevel=0.05, Response=0, Correct=1, Latency=0.643)
+    test_log.Add(Trial=2, Cond=1, Response=0, Interv=2, StimLevel=0.05, Correct=1, Latency=0.643)
     test_log.Stop()
+    
+    test_log.DumpToFile()
     
     return 0
     
