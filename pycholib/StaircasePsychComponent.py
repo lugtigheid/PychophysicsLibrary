@@ -6,17 +6,21 @@ class StaircasePsychComponent ( object ):
 
     def __init__(self):
 
-        self._ActiveStairsList = list()
-        self._FinishedStairList = list()
-        self._CurrentStaircaseID = 0;   # this refers to the _ActiveStairsList index
-        self._TotalTrials = 0;
+        ''' -- the internal variables -- '''
+        self._TrialList = list()            # contains all trials
+        self._ActiveStairsList = list()     # contains active staircases
+        self._FinishedStairList = list()    # contains 'terminated' staircases
+        self._CurrentStaircaseID = 0;       # this refers to the _ActiveStairsList index
+        self._TotalTrials = 0;              # we won't really need this
+        
+        ''' -- these are simulation variables -- '''
         self._mu = 50;
         self._sg = 10;
 
     def Initialise(self):
 
         # just set some values
-        start = [100];
+        start = [100, 0];
         stepsizes = [10,10,9,7,5,3];
         minboundary = 0;
         maxboundary = 100;
@@ -25,7 +29,7 @@ class StaircasePsychComponent ( object ):
 
         # set up the staircases for now
         self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x], 
-                                  fixedstepsize=stepsizes, up=n_up, down = n_down) for x in range(1)]
+                                  fixedstepsize=stepsizes, up=n_up, down = n_down) for x in range(2)]
 
     ''' --- Properties --- '''
 
@@ -37,7 +41,9 @@ class StaircasePsychComponent ( object ):
 
         # how many are left in the active list?
         if self.nActiveStairs > 1:
-            self._CurrentStaircaseID = np.random.randint(0, self.nActiveStairs-1)
+
+            # we don't use 'self.nActiveStairs - 1' here as np.random is exclusive
+            self._CurrentStaircaseID = np.random.randint(0, self.nActiveStairs)
         else: 
             self._CurrentStaircaseID = 0
 
@@ -73,9 +79,38 @@ class StaircasePsychComponent ( object ):
         # new trial instance and return the fucker
         return self._CurrentStair.NewTrial()
 
-    def Update(self, trial):
+    def ShowResults(self):
 
-        # TODO: this should probably save the trial to the trial list
+        ''' -- Plots the data ''' 
+            
+        for iStairs in range(len(self._FinishedStairList)):
+
+            # only get the values for a single staircase (iStairs.ID)
+            data = [trial for trial in self._TrialList if trial._StaircaseID == iStairs]
+
+            # extract the x and y values for the plot
+            x = [t._TrialID for t in data]
+            y = [t._Stimval for t in data]
+
+            plt.plot(x,y, color='k', marker='o', ls='-')
+
+        # show the actual mean of the sampling distribution
+        plt.axhline(y=self._mu,color='r',ls='dashed')
+
+        # set the boundaries of the y-axis
+        # plt.ylim([self._MinBoundary,self._MaxBoundary])
+
+        # show the plot
+        plt.show()
+
+        # save these results to a pdf
+        plt.savefig('plot.pdf')
+
+
+    def EvaluateTrial(self, trial):
+
+        # this saves the trial into the trial list
+        self._TrialList.append(trial);
 
         # store the current staircase
         cs = self.GetCurrentStaircase()
@@ -83,13 +118,13 @@ class StaircasePsychComponent ( object ):
         # evaluate the response?
         cs.EvaluateTrial(trial)
 
-        cs.Terminate()
-
         # this is the staircase termination rule
         if cs.Terminate():
 
             # we do this by ID, otherwise it's too tricky
-            self.DeactivateStaircase(self._CurrentStaircaseID);
+            self.DeactivateStaircase(cs.ID-1);
+
+    ''' MC: A staircase doesn't normally have a set number of trials - do we need this? ''' 
 
     def GetRemainingTrials(self):
         # return a count of the total number of trials for logging
@@ -120,6 +155,12 @@ class StaircasePsychComponent ( object ):
         v = self._CurrentStair._CurrentStimval
         return int(p<v)
 
+
+
+
+
+''' The main staircase class: all variables pertaining to a single staircase
+    are contained within this class and it has all the functions to run '''
 
 class Staircase ( object ):
 
@@ -173,6 +214,11 @@ class Staircase ( object ):
     def NumTrials(self):
         return self._TrialNum;
 
+    @property
+    def ID(self):
+        return self._StaircaseIndex
+
+
     ''' -- The meat of this class -- '''
 
     def NewTrial(self):
@@ -191,25 +237,6 @@ class Staircase ( object ):
                   condition = self._Condition, 
                   stimval = self._CurrentStimval,
                   interval = self._nIntervals);
-
-    def Terminate(self):
-
-        ''' Determines if this staircase should terminate '''
-
-        # maximum number of trials has been reached
-        if self._MaxTrials <= self.NumTrials:
-            return True
-
-        # maximum number of reversals has been reached
-        if self._MaxReversals <= self.NumReversals:
-            return True
-
-        # maximum number of boundary hits has been reached
-        if self._MaxBoundaryHit <= self._OutOfBoundaryCount:
-            return True
-
-        # this is the default return: do not terminate
-        return False
 
 
     def SetStimval(self):
@@ -332,10 +359,30 @@ class Staircase ( object ):
         else:
             raise ValueError('Incorrect response: needs to be 0 or 1')
 
+    def Terminate(self):
+
+        ''' Determines if this staircase should terminate '''
+
+        # maximum number of trials has been reached
+        if self._MaxTrials <= self.NumTrials:
+            return True
+
+        # maximum number of reversals has been reached
+        if self._MaxReversals <= self.NumReversals:
+            return True
+
+        # maximum number of boundary hits has been reached
+        if self._MaxBoundaryHit <= self._OutOfBoundaryCount:
+            return True
+
+        # this is the default return: do not terminate
+        return False
+
 
     def PlotResults(self):
 
-        ''' plots the results'''
+        ''' plots the results - now depreciated in favor of the plotting routine in 
+            the main component (i.e. ShowResults())'''
 
         print '- Now plotting results -'
 

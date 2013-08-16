@@ -22,7 +22,7 @@ class Trial(object):
     # show the values of this specific trial
     def __str__(self):
         
-        return '#%2.f \t %2.f \t %2.f' % (self._TrialID, self._Condition, self._Stimval);
+        return '#%2.f \t %2.f \t %2.f' % (self._TrialID, self._StaircaseID, self._Stimval);
 
         # s =  '[ #%2.f ] \t (%.f) \t\t Stim(%4.f) \t Interval(%.f) \t Resp(%.f)' % \
         # (self._TrialID+1, self._Condition, self._Stimval, self._Interval, self._Response)

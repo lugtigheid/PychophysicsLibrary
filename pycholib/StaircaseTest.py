@@ -16,11 +16,13 @@ while not Exp.isFinished():
     # get a response from the simulator
     trial.Response = Exp.SimulateResponse()
 
-    # this updates the results
-    Exp.Update(trial);
+    # this updates the results and saves the trial
+    Exp.EvaluateTrial(trial);
 
 # plot the results
-Exp._CurrentStair.PlotResults()
+# Exp._CurrentStair.PlotResults()
 
 # gets the standard deviation and mean for staircase
-Exp._CurrentStair.Stats()
+# Exp._CurrentStair.Stats()
+
+Exp.ShowResults();
