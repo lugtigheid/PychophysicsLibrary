@@ -101,7 +101,7 @@ class StaircasePsychComponent ( object ):
         # plt.ylim([self._MinBoundary,self._MaxBoundary])
 
         # show the plot
-        plt.show()
+        '''plt.show()'''
 
         # save these results to a pdf
         plt.savefig('plot.pdf')
