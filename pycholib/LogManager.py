@@ -130,7 +130,7 @@ class LoggingComponent(object):
         
         if self._started:
             
-            ts_frmt = '{}# Experiment ended at: %Y-%m-%d %H:%M:%S'.format(self._new_line_char)
+            ts_frmt = "{}# Experiment ended at: %Y-%m-%d %H:%M:%S".format(self._new_line_char)
             self._new_entry(datetime.datetime.now().strftime(ts_frmt))
 
             self._started = False
@@ -139,14 +139,15 @@ class LoggingComponent(object):
             
             print("ERROR: This log object has not been started.")
     
-    def DumpToFile(self, header_text=None, f_path=None, format='csv', overwrite=False):
+    def DumpToCSVFile(self, f_path=None, header_text=None, footer_text=None, format_type='csv', 
+                      fill_val='NA', no_comments=False, overwrite=False):
         
         # There are multiple format modes to be implimented:
         # ==================================================
         # CSV : Comma-seperatated values with no spaces (works)
         # CSV2 : Comma-seperatated values with a space
-        # TSV : Tab-seperated values
-        # XML : Good format to store data with
+        # RCSV : Comma-seperatated values with no spaces with lables for R
+        # RCSV2 : Comma-seperatated values with a space with lables for R
         
         if f_path == None: f_path = self._OutFilePath
         
@@ -158,12 +159,32 @@ class LoggingComponent(object):
         
         f_dat = open(f_path, 'a') # use append mode
         
-        #
-        # TODO: Header of some sort needs to be written here.
-        #   
-        
-        if format == 'csv':
+        # This writes basic text based formats
+        if format_type.lower() in ['csv', 'rcsv', 'csv2']:
+            if (format_type == 'csv') or (format_type == 'rcsv'):
+                sep_style = ','
+            elif (format_type == 'csv2'):
+                sep_style = ', '
             
+            #
+            # TODO: Header of some sort needs to be written here.
+            #   
+            
+            # R format has labels as a first line
+            if format_type[0] == 'r':
+                col_labels_str = str()
+                n = 0
+                for field in self._DataFields:
+                    if n != 0:
+                        col_labels_str = "{0}{1}{2}".format(col_labels_str, 
+                            sep_style, field)
+                    else:
+                        col_labels_str = field
+                        n += 1
+                
+                #col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
+                f_dat.write(col_labels_str)
+                
             # if the file is not empty, add a newline char to space out data
             if os.path.getsize(f_path) > 0: f_dat.write(self._new_line_char)
                 
@@ -173,18 +194,28 @@ class LoggingComponent(object):
                     n = 0
                     for field in item:
                         if n > 0:
-                            data_line = '{0},{1}'.format(data_line, field)
+                            if isinstance(field, str):
+                                if format_type[0] == 'r':
+                                    data_line = "{0}{1}\"{2}\"".format(data_line, sep_style, field)
+                                else:
+                                    data_line = "{0}{1}{2}".format(data_line, sep_style, field)
+                                    
+                            elif isinstance(field, int) or isinstance(field, float):
+                                data_line = "{0}{1}{2}".format(data_line, sep_style, field)
+                            else:
+                                data_line = "{0}{1}{2}".format(data_line, sep_style, fill_val)
                         else:
                             data_line = field
                             n += 1
                     
-                    data_line = '{0}{1}'.format(data_line, self._new_line_char)
+                    data_line = "{0}{1}".format(data_line, self._new_line_char)
+                    f_dat.write(data_line)
                     
                 else:
-                    data_line = '{0}{1}'.format(item, self._new_line_char)
-                
-                f_dat.write(data_line)
-            
+                    if not no_comments:
+                        data_line = "{0}{1}".format(item, self._new_line_char)
+                        f_dat.write(data_line)
+                    
             f_dat.close()
             
         else:
@@ -201,13 +232,13 @@ def main():
     
     test_log.SetDataFields('Trial', 'Cond', 'StimLevel', 'Interv', 'Response', 'Correct', 'Latency')
     
-    test_log.Start()
-    test_log.Add(Trial=0, Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
-    test_log.Add(Trial=1, Cond=0, Interv=2, StimLevel=0.1, Response=1, Correct=1, Latency=0.3252)
-    test_log.Add(Trial=2, Cond=1, Response=0, Interv=2, StimLevel=0.05, Correct=1, Latency=0.643)
-    test_log.Stop()
+    test_log.StartLogging()
+    test_log.AddRecord(Trial="0", Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
+    test_log.AddRecord(Trial="1", Cond=0, Interv=2, StimLevel=0.1, Response=1, Correct=1, Latency=0.3252)
+    test_log.AddRecord(Trial="2", Cond=1, Response=0, Interv=2, StimLevel=0.05, Correct=1, Latency=0.643)
+    test_log.StopLogging()
     
-    test_log.DumpToFile()
+    test_log.DumpToCSVFile(format_type='rcsv', no_comments=False)
     
     return 0
     
