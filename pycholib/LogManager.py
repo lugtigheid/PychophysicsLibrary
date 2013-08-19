@@ -5,8 +5,6 @@ import os
 import sys
 import datetime
 
-# TODO: Should open a write to a file when started
-
 class LoggingComponent(object):
 
     def __init__(self, OutFilePath, HeaderTemplateFile=None, Verbose=False, NewLineChar=None):
@@ -75,8 +73,8 @@ class LoggingComponent(object):
                 return # just exit
             
             # starting timestamp
-            ts_frmt = '# Experiment started at: %Y-%m-%d %H:%M:%S{}'.format(self._new_line_char)
-            self._new_entry(datetime.datetime.now().strftime(ts_frmt))
+            #ts_frmt = '# Experiment started at: %Y-%m-%d %H:%M:%S{}'.format(self._new_line_char)
+            #self._new_entry(datetime.datetime.now().strftime(ts_frmt))
 
             self._started = True
             
@@ -130,8 +128,8 @@ class LoggingComponent(object):
         
         if self._started:
             
-            ts_frmt = "{}# Experiment ended at: %Y-%m-%d %H:%M:%S".format(self._new_line_char)
-            self._new_entry(datetime.datetime.now().strftime(ts_frmt))
+            #ts_frmt = "{}# Experiment ended at: %Y-%m-%d %H:%M:%S".format(self._new_line_char)
+            #self._new_entry(datetime.datetime.now().strftime(ts_frmt))
 
             self._started = False
             
@@ -147,81 +145,97 @@ class LoggingComponent(object):
         # CSV : Comma-seperatated values with no spaces (works)
         # CSV2 : Comma-seperatated values with a space
         # RCSV : Comma-seperatated values with no spaces with lables for R
-        # RCSV2 : Comma-seperatated values with a space with lables for R
         
-        if f_path == None: f_path = self._OutFilePath
-        
-        if overwrite:
-            # open, blank, then close the file
-            f_dat = open(f_path, 'w')
-            f_dat.write('')
-            f_dat.close()
-        
-        f_dat = open(f_path, 'a') # use append mode
-        
-        # This writes basic text based formats
-        if format_type.lower() in ['csv', 'rcsv', 'csv2']:
-            if (format_type == 'csv') or (format_type == 'rcsv'):
-                sep_style = ','
-            elif (format_type == 'csv2'):
-                sep_style = ', '
+        if self._started == False:
             
-            #
-            # TODO: Header of some sort needs to be written here.
-            #   
+            if f_path == None: f_path = self._OutFilePath
             
-            # R format has labels as a first line
-            if format_type[0] == 'r':
-                col_labels_str = str()
-                n = 0
-                for field in self._DataFields:
-                    if n != 0:
-                        col_labels_str = "{0}{1}{2}".format(col_labels_str, 
-                            sep_style, field)
-                    else:
-                        col_labels_str = field
-                        n += 1
+            if overwrite:
+                # open, blank, then close the file
+                f_dat = open(f_path, 'w')
+                f_dat.write('')
+                f_dat.close()
+            
+            f_dat = open(f_path, 'a') # use append mode
+            
+            # This writes basic text based formats
+            if format_type.lower() in ['csv', 'rcsv', 'csv2']:
+                if (format_type == 'csv') or (format_type == 'rcsv'):
+                    sep_style = ','
+                elif (format_type == 'csv2'):
+                    sep_style = ', '
                 
-                #col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
-                f_dat.write(col_labels_str)
-                
-            # if the file is not empty, add a newline char to space out data
-            if os.path.getsize(f_path) > 0: f_dat.write(self._new_line_char)
-                
-            for key, item in self._data_registry.items():
-                if isinstance(item, list):
-                    data_line = str()
+                # write header
+                if header_text != None: f_dat.write(str(header_text))
+   
+                # R format has labels as a first line
+                if format_type[0] == 'r':
+                    col_labels_str = str()
                     n = 0
-                    for field in item:
-                        if n > 0:
-                            if isinstance(field, str):
-                                if format_type[0] == 'r':
-                                    data_line = "{0}{1}\"{2}\"".format(data_line, sep_style, field)
-                                else:
-                                    data_line = "{0}{1}{2}".format(data_line, sep_style, field)
-                                    
-                            elif isinstance(field, int) or isinstance(field, float):
-                                data_line = "{0}{1}{2}".format(data_line, sep_style, field)
-                            else:
-                                data_line = "{0}{1}{2}".format(data_line, sep_style, fill_val)
+                    for field in self._DataFields:
+                        if n != 0:
+                            col_labels_str = "{0}{1}\"{2}\"".format(col_labels_str, 
+                                sep_style, field)
                         else:
-                            data_line = field
+                            col_labels_str = "\"{}\"".format(field)
                             n += 1
                     
-                    data_line = "{0}{1}".format(data_line, self._new_line_char)
-                    f_dat.write(data_line)
+                    col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
+                    f_dat.write(col_labels_str)
                     
-                else:
-                    if not no_comments:
-                        data_line = "{0}{1}".format(item, self._new_line_char)
+                # if the file is not empty, add a newline char to space out data
+                if os.path.getsize(f_path) > 0: f_dat.write(self._new_line_char)
+                    
+                for key, item in self._data_registry.items():
+                    if isinstance(item, list):
+                        data_line = str()
+                        n = 0
+                        for field in item:
+                            if n > 0:
+                                if isinstance(field, str):
+                                    if format_type[0] == 'r':
+                                        data_line = "{0}{1}\"{2}\"".format(data_line, sep_style, field)
+                                    #else:
+                                    #    data_line = "{0}{1}{2}".format(data_line, sep_style, field)
+                                        
+                                elif isinstance(field, int) or isinstance(field, float):
+                                    data_line = "{0}{1}{2}".format(data_line, sep_style, field)
+                                else:
+                                    data_line = "{0}{1}{2}".format(data_line, sep_style, fill_val)
+                            else:
+                                data_line = field
+                                n += 1
+                        
+                        data_line = "{0}{1}".format(data_line, self._new_line_char)
                         f_dat.write(data_line)
-                    
-            f_dat.close()
+                        
+                    else:
+                        if not no_comments:
+                            data_line = "{0}{1}".format(item, self._new_line_char)
+                            f_dat.write(data_line)
+                
+                # write footer
+                if footer_text != None: f_dat.write(str(footer_text))
+                        
+                f_dat.close()
+                
+            else:
+                print("Unsupported formatting string, valid format strings are:")
+                print("")
+                print("CSV  : Comma-seperatated values with no spaces")
+                print("CSV2 : Comma-seperatated values with a space")
+                print("RCSV : Comma-seperatated values with no spaces + header with labels")
+                print("")
+                
+                raise ValueError
+        
+        elif len(self._data_registry.keys()) == 0:
             
+            print("WARNING: No log data to write!")
+        
         else:
             
-            # need a proper exception here
-            print("ERROR: Unsupported format type.")
+            print("ERROR: Log object is still active, can not write data to file until StopLogging() is called.")
             
     def __del__(self):
         pass
@@ -233,9 +247,9 @@ def main():
     test_log.SetDataFields('Trial', 'Cond', 'StimLevel', 'Interv', 'Response', 'Correct', 'Latency')
     
     test_log.StartLogging()
-    test_log.AddRecord(Trial="0", Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
-    test_log.AddRecord(Trial="1", Cond=0, Interv=2, StimLevel=0.1, Response=1, Correct=1, Latency=0.3252)
-    test_log.AddRecord(Trial="2", Cond=1, Response=0, Interv=2, StimLevel=0.05, Correct=1, Latency=0.643)
+    for i in range(50): # simulate 50 trials
+        test_log.AddRecord(Trial=i, Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
+        
     test_log.StopLogging()
     
     test_log.DumpToCSVFile(format_type='rcsv', no_comments=False)
