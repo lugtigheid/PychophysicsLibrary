@@ -1,5 +1,6 @@
 from Trial import * # not quite how it should be
 import numpy as np
+import scipy.stats as sp
 import matplotlib.pyplot as plt
 
 class StaircasePsychComponent ( object ):
@@ -82,29 +83,66 @@ class StaircasePsychComponent ( object ):
     def ShowResults(self):
 
         ''' -- Plots the data ''' 
-            
+
+        # pre-define the list that will hold means
+        stairMeans = []; 
+
         for iStairs in range(len(self._FinishedStairList)):
 
             # only get the values for a single staircase (iStairs.ID)
             data = [trial for trial in self._TrialList if trial._StaircaseID == iStairs]
 
+            print iStairs;
+
+            # get the stats for each staircase
+            mu,sg = self._FinishedStairList[iStairs].GetStats()
+
+            # save the mu for later reference
+            stairMeans.append(mu)
+
+            plt.subplot(1,2,1)
+
+            # plot the mu value
+            plt.axhline(y=mu, color='r', ls='--')
+
+
             # extract the x and y values for the plot
             x = [t._TrialID for t in data]
             y = [t._Stimval for t in data]
 
-            plt.plot(x,y, color='k', marker='o', ls='-')
+            plt.plot(x,y, color='k', marker='.', ls='-')
+
 
         # show the actual mean of the sampling distribution
-        plt.axhline(y=self._mu,color='r',ls='dashed')
+        plt.axhline(y=self._mu,color='g',ls='dashed')
+        plt.axhline(y=np.mean(stairMeans), color='r')
 
-        # set the boundaries of the y-axis
+        # this provides and extra plot for reference
+        plt.subplot(1,2,2)
+
+        # plot the psychometric function used in the simulation
+        x = np.linspace(0, 100, 1000)
+        y = sp.norm.cdf(x, loc=self._mu, scale=self._sg)
+        plt.plot(x,y, color='k')
+
+        # plot some lines to show the thresholds
+        [plt.axvline(x=xvar, color='r', ls='--') for xvar in stairMeans]
+
+        # and the mean
+        plt.axvline(x=np.mean(stairMeans), color='r')
+
+        # and now plot the position on the y-axis
+        plt.axhline(y=sp.norm.cdf(np.mean(stairMeans), 
+            loc=self._mu, scale=self._sg), ls='--', color='0.75')
+
+         # set the boundaries of the y-axis
         # plt.ylim([self._MinBoundary,self._MaxBoundary])
 
         # show the plot
-        '''plt.show()'''
+        plt.show()
 
         # save these results to a pdf
-        plt.savefig('plot.pdf')
+        # plt.savefig('plot.pdf')
 
 
     def EvaluateTrial(self, trial):
@@ -422,7 +460,7 @@ class Staircase ( object ):
         # actually show these results
         plt.savefig('plot.pdf')
 
-    def Stats(self):
+    def GetStats(self):
 
         ''' Provides simple stats for the current staircase '''
 
@@ -430,10 +468,10 @@ class Staircase ( object ):
         vals = [x[1] for x in self._Reversals]
 
         # get just the last (i.e. ignore the first couple)
-        rev = vals[self._IgnoreReversals:]
+        reversals = vals[self._IgnoreReversals:]
 
         # return the mean and standard deviation
-        print 'STATS:\nMean: %.2f\nStd: %.2f' % (np.mean(rev), np.std(rev))
+        return (np.mean(reversals), np.std(reversals))
 
     ''' -- Utility functions --- '''
 
