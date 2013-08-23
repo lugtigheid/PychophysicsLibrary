@@ -19,18 +19,15 @@ class StaircasePsychComponent ( object ):
         self._sg = 10;
 
     def Initialise(self):
+        pass
 
-        # just set some values
-        start = [100, 0];
-        stepsizes = [10,10,9,7,5,3];
-        minboundary = 0;
-        maxboundary = 100;
-        n_up = 1;
-        n_down = 3;
+    def AddStair(self, stair):
 
-        # set up the staircases for now
-        self._ActiveStairsList = [Staircase(staircaseID=x, initial=start[x], 
-                                  fixedstepsize=stepsizes, up=n_up, down = n_down) for x in range(2)]
+        # set the correct stair id
+        stair._StaircaseIndex = len(self._ActiveStairsList)
+
+        # now add it to the list
+        self._ActiveStairsList.append(stair)
 
     ''' --- Properties --- '''
 
@@ -100,16 +97,17 @@ class StaircasePsychComponent ( object ):
             # save the mu for later reference
             stairMeans.append(mu)
 
+            # create a subplot (left)
             plt.subplot(1,2,1)
 
             # plot the mu value
             plt.axhline(y=mu, color='r', ls='--')
 
-
             # extract the x and y values for the plot
             x = [t._TrialID for t in data]
             y = [t._Stimval for t in data]
 
+            # plot the actual staircase
             plt.plot(x,y, color='k', marker='.', ls='-')
 
 

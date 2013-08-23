@@ -3,9 +3,19 @@ from StaircasePsychComponent import *
 # new instance of the StaircasePsychComponent
 Exp = StaircasePsychComponent();
 
-# Initialise (this is now an internal initialisation but should allow for 
-# all the initial staircases to be passed as a variable here, batch?)
-Exp.Initialise()
+# define the stepsizes
+stepsize = [10, 10, 8, 6, 4, 2, 1]
+
+# add two staircases that target the ~80% point
+Exp.AddStair(Staircase(up=1, down=3, initial=0, fixedstepsize=stepsize))
+Exp.AddStair(Staircase(up=1, down=3, initial=100, fixedstepsize=stepsize))
+
+# add two staircases that target the ~20% point
+Exp.AddStair(Staircase(up=3, down=1, initial=0, fixedstepsize=stepsize))
+Exp.AddStair(Staircase(up=3, down=1, initial=100, fixedstepsize=stepsize))
+
+# this should validate all the staircases
+# Exp.Initialise()
 
 # we continue until finished
 while not Exp.isFinished():
@@ -20,9 +30,4 @@ while not Exp.isFinished():
     Exp.EvaluateTrial(trial);
 
 # plot the results
-# Exp._CurrentStair.PlotResults()
-
-# gets the standard deviation and mean for staircase
-# Exp._CurrentStair.Stats()
-
 Exp.ShowResults();
