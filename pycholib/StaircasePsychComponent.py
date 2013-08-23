@@ -18,7 +18,11 @@ class StaircasePsychComponent ( object ):
         self._mu = 50;
         self._sg = 10;
 
-    def Initialise(self):
+    # empty for now
+    def Start(self):
+        pass
+
+    def Stop(self):
         pass
 
     def AddStair(self, stair):
@@ -35,33 +39,7 @@ class StaircasePsychComponent ( object ):
     def nActiveStairs(self):
         return len(self._ActiveStairsList)
 
-    def SelectRandomStaircase(self):
-
-        # how many are left in the active list?
-        if self.nActiveStairs > 1:
-
-            # we don't use 'self.nActiveStairs - 1' here as np.random is exclusive
-            self._CurrentStaircaseID = np.random.randint(0, self.nActiveStairs)
-        else: 
-            self._CurrentStaircaseID = 0
-
-        # return a random staircase from the active stairslist
-        return self._ActiveStairsList[self._CurrentStaircaseID];
-
-    def GetCurrentStaircase(self):
-        return self._ActiveStairsList[self._CurrentStaircaseID];
-
-    def DeactivateStaircase(self, id):
-
-        # obtain the staircase to be deleted
-        tmpStair = self._ActiveStairsList[id];
-
-        # put this in the finished list
-        self._FinishedStairList.append(tmpStair);
-
-        # remove it from the active list
-        self._ActiveStairsList.pop(id);
-
+    ''' --- Methods ---'''
 
     def GetNextTrial(self):
 
@@ -155,10 +133,41 @@ class StaircasePsychComponent ( object ):
         cs.EvaluateTrial(trial)
 
         # this is the staircase termination rule
-        if cs.Terminate():
+        if cs.Terminated():
 
             # we do this by ID, otherwise it's too tricky
-            self.DeactivateStaircase(cs.ID-1);
+            self.DeactivateStaircase(self._CurrentStaircaseID);
+
+    def DeactivateStaircase(self, id):
+
+        # obtain the staircase to be deleted
+        tmpStair = self._ActiveStairsList[id];
+
+        # put this in the finished list
+        self._FinishedStairList.append(tmpStair);
+
+        # remove it from the active list
+        self._ActiveStairsList.pop(id);
+
+    def GetCurrentStaircase(self):
+
+        # this returns the current staircase object
+        return self._ActiveStairsList[self._CurrentStaircaseID];
+
+
+    def SelectRandomStaircase(self):
+
+        # how many are left in the active list?
+        if self.nActiveStairs > 1:
+
+            # we don't use 'self.nActiveStairs - 1' here as np.random is exclusive
+            self._CurrentStaircaseID = np.random.randint(0, self.nActiveStairs)
+        else: 
+            self._CurrentStaircaseID = 0
+
+        # return a random staircase from the active stairslist
+        return self._ActiveStairsList[self._CurrentStaircaseID];
+
 
     ''' MC: A staircase doesn't normally have a set number of trials - do we need this? ''' 
 
@@ -395,7 +404,7 @@ class Staircase ( object ):
         else:
             raise ValueError('Incorrect response: needs to be 0 or 1')
 
-    def Terminate(self):
+    def Terminated(self):
 
         ''' Determines if this staircase should terminate '''
 
