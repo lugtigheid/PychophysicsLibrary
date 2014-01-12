@@ -5,9 +5,15 @@ import os
 import sys
 import datetime
 
+class LabelError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return "String \"{}\" contains invalid characters.".format(self.value)
+
 class LoggingComponent(object):
 
-    def __init__(self, OutFilePath, HeaderTemplateFile=None, Verbose=False, NewLineChar=None):
+    def __init__(self, OutFilePath, HeaderTemplateFile=None, Verbose=False, NewLineChar=None, CommentChar='#'):
                      
         ''' Contructor for logging object '''
         
@@ -34,8 +40,10 @@ class LoggingComponent(object):
         else:
             # can be used to enforce consistency across platforms
             self._new_line_char = NewLineChar
+            
+        self._CommentChar = CommentChar
         
-        self._HeaderFields = None
+        self._HeaderInfo = None
         self._DataFields = None
         
         # TODO: check if file exists
@@ -47,11 +55,17 @@ class LoggingComponent(object):
         
         self._started = False
     
-    def SetHeaderFields(self, *args):
-        self._HeaderFields = args
+    def SetHeaderInfo(self, hdat):
+        self._HeaderInfo = hdat
+        
+        return
     
     def SetDataFields(self, *args):
         if not self._started:
+            for name in args:
+                if chr(32) in name:
+                    raise LabelError(name)
+            
             self._DataFields = args
         else:
             print("ERROR: Cannot set data fields once Start() has been called.")
@@ -123,6 +137,9 @@ class LoggingComponent(object):
         else:
             
             print("ERROR: Can not add entry, log object has not be started yet.")
+    
+    def GetTimeStamp(self):
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
     def StopLogging(self):
         
@@ -140,7 +157,7 @@ class LoggingComponent(object):
     def DumpToCSVFile(self, f_path=None, header_text=None, footer_text=None, format_type='csv', 
                       fill_val='NA', no_comments=False, overwrite=False):
         
-        # There are multiple format modes to be implimented:
+        # There are multiple format modes implimented:
         # ==================================================
         # CSV : Comma-seperatated values with no spaces (works)
         # CSV2 : Comma-seperatated values with a space
@@ -157,6 +174,12 @@ class LoggingComponent(object):
                 f_dat.close()
             
             f_dat = open(f_path, 'a') # use append mode
+            
+            # write formatted header to file
+            f_dat.write('{0} {1}{2}'.format(self._CommentChar, '-'*80, self._new_line_char))
+            for headline in self._HeaderInfo:
+                 f_dat.write('{0} {1}:\t\t{2}{3}'.format(self._CommentChar, headline[0], headline[1], self._new_line_char))
+            f_dat.write('{0} {1}{2}'.format(self._CommentChar, '-'*80, self._new_line_char))
             
             # This writes basic text based formats
             if format_type.lower() in ['csv', 'rcsv', 'csv2']:
@@ -244,6 +267,14 @@ def main():
     # test driver
     test_log = LoggingComponent('logging_test.txt')
     
+    test_log.SetHeaderInfo((('Exp Name', 'JUST TESTING'), 
+                           ('Program', 'myexperiment.py'),
+                           ('Version', '2014-01-10'),
+                           ('Subject', 'mdc'),
+                           ('StartTime', test_log.GetTimeStamp()),
+                           ('Conditions', 'binocular'),
+                           ('Dist', 1000)))
+                           
     test_log.SetDataFields('Trial', 'Cond', 'StimLevel', 'Interv', 'Response', 'Correct', 'Latency')
     
     test_log.StartLogging()
