@@ -11,6 +11,26 @@ class LabelError(Exception):
     def __str__(self):
         return "String \"{}\" contains invalid characters.".format(self.value)
 
+class LogHeading(object):
+    
+    def __init__(self, parent, Fields, ColumnSizes=['M', None], SeperatorChar=':', 
+        UseBreak=True, BreakChar='-', BreakLength=80, Commented=True):
+        
+        self.parent = parent # point to log component
+        
+        self._Fields = Fields
+        self._ColumnSizes = ColumnSizes
+        self._SeperatorChar = SeperatorChar
+        self._UseBreak= UseBreak
+        self._BreakChar = BreakChar
+        self._BreakLength = BreakLength
+        self._Commented = Commented
+        
+        pass
+    
+    def GetHeadingText(self):
+        pass
+
 class LoggingComponent(object):
 
     def __init__(self, OutFilePath, HeaderTemplateFile=None, Verbose=False, NewLineChar=None, CommentChar='#'):
