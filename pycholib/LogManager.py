@@ -6,34 +6,79 @@ import sys
 import datetime
 
 class LabelError(Exception):
+    
     def __init__(self, value):
         self.value = value
+        
     def __str__(self):
         return "String \"{}\" contains invalid characters.".format(self.value)
 
+class TemplateHeading(object):
+    
+    def __init__(self):
+        pass
+
 class LogHeading(object):
     
-    def __init__(self, parent, Fields, ColumnSizes=['M', None], SeperatorChar=':', 
-        UseBreak=True, BreakChar='-', BreakLength=80, Commented=True):
+    def __init__(self, parent, Fields, SeperatorChar=':', UseBreak=True, 
+        BreakChar='-', BreakLength=80, Commented=True):
         
         self.parent = parent # point to log component
         
         self._Fields = Fields
-        self._ColumnSizes = ColumnSizes
+        #self._ColumnSizes = ColumnSizes
         self._SeperatorChar = SeperatorChar
         self._UseBreak= UseBreak
         self._BreakChar = BreakChar
         self._BreakLength = BreakLength
         self._Commented = Commented
-        
-        pass
     
+    def UpdateFieldData(self, idx, value):
+        # update a field, accepts an integer/string index
+        if isinstance(idx, int):
+            self._Fields[idx][1] = value
+        elif isinstance(idx, str):
+            # search for string
+            for field_dat in enumerate(self._Fields):
+                n, vals = field_dat
+                if vals[0] == idx:
+                    self._Fields[n][1] = value
+        else:
+            raise TypeError
+            print("Type Error: Field index must be of type 'int' or 'str'")
+
+    def GetFieldData(self, idx):
+        if isinstance(idx, int):
+            return self._Fields[idx][1]
+        elif isinstance(idx, str):
+            for field_dat in enumerate(self._Fields):
+                n, vals = field_dat
+                if vals[0] == idx:
+                    return self._Fields[n][1]
+        else:
+            raise TypeError
+            print("Type Error: Field index must be of type 'int' or 'str'")
+                    
     def GetHeadingText(self):
-        pass
+        heading_text = str()
+        
+        comm_chr = self.parent._CommentChar
+        nl_chr = self.parent._new_line_char
+        
+        heading_text = '{0}{1} {2}{3}'.format(heading_text, comm_chr, '-'*80, nl_chr)
+        
+        for field in self._Fields:
+            heading_text = '{0}{1} {2}:\t\t{3}{4}'.format(heading_text, 
+            comm_chr, field[0], field[1], nl_chr)
+            
+        heading_text = '{0}{1} {2}{3}'.format(heading_text, comm_chr, '-'*80, nl_chr)
+        
+        return heading_text 
 
 class LoggingComponent(object):
 
-    def __init__(self, OutFilePath, HeaderTemplateFile=None, Verbose=False, NewLineChar=None, CommentChar='#'):
+    def __init__(self, OutFilePath, StartIdxNumber=0, HeaderTemplateFile=None, 
+        Verbose=False, NewLineChar=None, CommentChar='#'):
                      
         ''' Contructor for logging object '''
         
@@ -63,7 +108,7 @@ class LoggingComponent(object):
             
         self._CommentChar = CommentChar
         
-        self._HeaderInfo = None
+        self._Heading = None
         self._DataFields = None
         
         # TODO: check if file exists
@@ -74,6 +119,12 @@ class LoggingComponent(object):
             self._HeaderTemplateFile = "default_header.txt"
         
         self._started = False
+    
+    def SetHeader(self, heading):
+        self._Heading  = heading
+
+    def SetFooter(self, heading):
+        self._Heading  = heading
     
     def SetHeaderInfo(self, hdat):
         self._HeaderInfo = hdat
@@ -181,7 +232,7 @@ class LoggingComponent(object):
         # ==================================================
         # CSV : Comma-seperatated values with no spaces (works)
         # CSV2 : Comma-seperatated values with a space
-        # RCSV : Comma-seperatated values with no spaces with lables for R
+        # RCSV : Comma-seperatated values with no spaces with labels for R (works)
         
         if self._started == False:
             
@@ -196,10 +247,8 @@ class LoggingComponent(object):
             f_dat = open(f_path, 'a') # use append mode
             
             # write formatted header to file
-            f_dat.write('{0} {1}{2}'.format(self._CommentChar, '-'*80, self._new_line_char))
-            for headline in self._HeaderInfo:
-                 f_dat.write('{0} {1}:\t\t{2}{3}'.format(self._CommentChar, headline[0], headline[1], self._new_line_char))
-            f_dat.write('{0} {1}{2}'.format(self._CommentChar, '-'*80, self._new_line_char))
+            if self._Heading:
+                f_dat.write(self._Heading.GetHeadingText())
             
             # This writes basic text based formats
             if format_type.lower() in ['csv', 'rcsv', 'csv2']:
@@ -287,22 +336,25 @@ def main():
     # test driver
     test_log = LoggingComponent('logging_test.txt')
     
-    test_log.SetHeaderInfo((('Exp Name', 'JUST TESTING'), 
-                           ('Program', 'myexperiment.py'),
-                           ('Version', '2014-01-10'),
-                           ('Subject', 'mdc'),
-                           ('StartTime', test_log.GetTimeStamp()),
-                           ('Conditions', 'binocular'),
-                           ('Dist', 1000)))
-                           
-    test_log.SetDataFields('Trial', 'Cond', 'StimLevel', 'Interv', 'Response', 'Correct', 'Latency')
+    fields =[['Exp Name', 'JUST TESTING'], 
+             ['Program', 'myexperiment.py'],
+             ['Version', '2014-01-10'],
+             ['Subject', 'mdc'],
+             ['StartTime', None],
+             ['Conditions', 'binocular'],
+             ['Dist', 1000]]
+             
+    head = LogHeading(test_log, fields)
+    head.UpdateFieldData('StartTime', test_log.GetTimeStamp())
     
+    test_log.SetHeader(head)
+    test_log.SetDataFields("Trial", "Cond", "Interv", "StimLevel", "Response", "Correct", "Latency")
     test_log.StartLogging()
-    for i in range(50): # simulate 50 trials
+    
+    for i in range(10): # simulate trials
         test_log.AddRecord(Trial=i, Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
         
     test_log.StopLogging()
-    
     test_log.DumpToCSVFile(format_type='rcsv', no_comments=False)
     
     return 0
