@@ -20,18 +20,30 @@ class TemplateHeading(object):
 
 class LogHeading(object):
     
-    def __init__(self, parent, Fields, SeperatorChar=':', UseBreak=True, 
-        BreakChar='-', BreakLength=80, Commented=True):
+    def __init__(self, parent, Fields, SeperatorStr=': ', Margin=1, UseBreak=True, 
+        BreakChar='-', AlignColumns=True, BreakLength=78, Commented=True):
         
         self.parent = parent # point to log component
         
         self._Fields = Fields
-        #self._ColumnSizes = ColumnSizes
-        self._SeperatorChar = SeperatorChar
-        self._UseBreak= UseBreak
+        self._Margin = Margin
+        self._AlignColumns = AlignColumns
+        self._SeperatorStr = SeperatorStr
+        self._UseBreak = UseBreak
         self._BreakChar = BreakChar
         self._BreakLength = BreakLength
         self._Commented = Commented
+    
+    def _MaxLabelLength(self, padding=1):
+            # deterimine the max label length to neatly align field names and data
+            max_len = 0
+            for field_dat in self._Fields:
+                lbl_len = len(field_dat[0]) + len(self._SeperatorStr)
+                
+                if lbl_len > max_len:
+                    max_len = lbl_len
+            
+            return max_len
     
     def UpdateFieldData(self, idx, value):
         # update a field, accepts an integer/string index
@@ -61,17 +73,35 @@ class LogHeading(object):
                     
     def GetHeadingText(self):
         heading_text = str()
+        nl_chr = self.parent._new_line_char # use parent newline character
         
-        comm_chr = self.parent._CommentChar
-        nl_chr = self.parent._new_line_char
+        if self._Commented:
+            comm_chr = self.parent._CommentChar
+        else:
+            comm_chr = ''
         
-        heading_text = '{0}{1} {2}{3}'.format(heading_text, comm_chr, '-'*80, nl_chr)
+        if self._AlignColumns:
+            width = self._MaxLabelLength()
+        else:
+            width = 0
+        
+        # we do not want to write a ruler when comments are off
+        if self._UseBreak and self._Commented:
+            heading_text = '{prev}{cmt}{margin}{ruler}{nl}'.format(prev=heading_text, 
+                cmt=comm_chr, ruler=self._BreakChar*self._BreakLength, nl=nl_chr,
+                margin=self._Margin*' ')
         
         for field in self._Fields:
-            heading_text = '{0}{1} {2}:\t\t{3}{4}'.format(heading_text, 
-            comm_chr, field[0], field[1], nl_chr)
+            pad = width - (len(field[0]) + len(self._SeperatorStr))
             
-        heading_text = '{0}{1} {2}{3}'.format(heading_text, comm_chr, '-'*80, nl_chr)
+            heading_text = '{prev}{cmt}{margin}{name}{sep}{padding}{dat}{nl}'.format(prev=heading_text, 
+                cmt=comm_chr, name=field[0], dat=field[1], nl=nl_chr, padding=pad*' ',
+                sep=self._SeperatorStr, margin=self._Margin*' ')
+            
+        if self._UseBreak and self._Commented:
+            heading_text = '{prev}{cmt}{margin}{ruler}{nl}'.format(prev=heading_text, 
+                cmt=comm_chr, ruler=self._BreakChar*self._BreakLength, nl=nl_chr,
+                margin=self._Margin*' ')
         
         return heading_text 
 
@@ -121,10 +151,10 @@ class LoggingComponent(object):
         self._started = False
     
     def SetHeader(self, heading):
-        self._Heading  = heading
+        self._HeaderHeading  = heading
 
     def SetFooter(self, heading):
-        self._Heading  = heading
+        self._FooterHeading  = heading
     
     def SetHeaderInfo(self, hdat):
         self._HeaderInfo = hdat
@@ -247,8 +277,8 @@ class LoggingComponent(object):
             f_dat = open(f_path, 'a') # use append mode
             
             # write formatted header to file
-            if self._Heading:
-                f_dat.write(self._Heading.GetHeadingText())
+            if self._HeaderHeading:
+                f_dat.write(self._HeaderHeading.GetHeadingText())
             
             # This writes basic text based formats
             if format_type.lower() in ['csv', 'rcsv', 'csv2']:
@@ -307,7 +337,8 @@ class LoggingComponent(object):
                             f_dat.write(data_line)
                 
                 # write footer
-                if footer_text != None: f_dat.write(str(footer_text))
+                if self._FooterHeading:
+                    f_dat.write(self._FooterHeading.GetHeadingText())
                         
                 f_dat.close()
                 
@@ -337,7 +368,7 @@ def main():
     test_log = LoggingComponent('logging_test.txt')
     
     fields =[['Exp Name', 'JUST TESTING'], 
-             ['Program', 'myexperiment.py'],
+             ['Program', '/home/testuser/experiments/myexperiment.py'],
              ['Version', '2014-01-10'],
              ['Subject', 'mdc'],
              ['StartTime', None],
@@ -346,15 +377,23 @@ def main():
              
     head = LogHeading(test_log, fields)
     head.UpdateFieldData('StartTime', test_log.GetTimeStamp())
+
+    fields =[['StopTime', None]]
+
+    foot = LogHeading(test_log, fields, UseBreak=False)
     
     test_log.SetHeader(head)
+    test_log.SetFooter(foot)
     test_log.SetDataFields("Trial", "Cond", "Interv", "StimLevel", "Response", "Correct", "Latency")
     test_log.StartLogging()
     
     for i in range(10): # simulate trials
         test_log.AddRecord(Trial=i, Cond=1, Interv=1, StimLevel=0.5, Response=1, Correct=1, Latency=0.3452)
-        
+
+    foot.UpdateFieldData('StopTime', test_log.GetTimeStamp())
     test_log.StopLogging()
+    
+    # not a safe way of doing things, still working out the best course of action
     test_log.DumpToCSVFile(format_type='rcsv', no_comments=False)
     
     return 0
