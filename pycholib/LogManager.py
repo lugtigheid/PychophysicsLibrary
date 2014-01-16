@@ -20,7 +20,7 @@ class TemplateHeading(object):
 
 class LogHeading(object):
     
-    def __init__(self, parent, Fields, SeperatorStr=': ', Margin=1, UseBreak=True, 
+    def __init__(self, parent, Fields, SeperatorStr=': ', Margin=0, UseBreak=True, 
         BreakChar='-', AlignColumns=True, BreakLength=78, Commented=True):
         
         self.parent = parent # point to log component
@@ -302,7 +302,7 @@ class LoggingComponent(object):
                             col_labels_str = "\"{}\"".format(field)
                             n += 1
                     
-                    col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
+                    #col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
                     f_dat.write(col_labels_str)
                     
                 # if the file is not empty, add a newline char to space out data
@@ -375,7 +375,7 @@ def main():
              ['Conditions', 'binocular'],
              ['Dist', 1000]]
              
-    head = LogHeading(test_log, fields)
+    head = LogHeading(test_log, fields, Margin=1)
     head.UpdateFieldData('StartTime', test_log.GetTimeStamp())
 
     fields =[['StopTime', None]]
