@@ -119,6 +119,8 @@ class LoggingComponent(object):
         self._entry_idx = 0
         
         self._Verbose = Verbose
+        
+        self._FilePath = OutFilePath
 
         # use the platform dependent newline character
         if NewLineChar == None:
@@ -177,6 +179,9 @@ class LoggingComponent(object):
         
         return
     
+    def _OpenFile(self, filepath):
+        pass
+    
     def StartLogging(self):
         ''' Start logging and write the header '''
         
@@ -188,8 +193,6 @@ class LoggingComponent(object):
                 return # just exit
             
             # starting timestamp
-            #ts_frmt = '# Experiment started at: %Y-%m-%d %H:%M:%S{}'.format(self._new_line_char)
-            #self._new_entry(datetime.datetime.now().strftime(ts_frmt))
 
             self._started = True
             
@@ -380,7 +383,7 @@ def main():
 
     fields =[['StopTime', None]]
 
-    foot = LogHeading(test_log, fields, UseBreak=False)
+    foot = LogHeading(test_log, fields, UseBreak=False, Margin=1)
     
     test_log.SetHeader(head)
     test_log.SetFooter(foot)
