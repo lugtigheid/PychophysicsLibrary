@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 class WorkFlow(object):
 	''' Create a workflow for experimental control '''
 	''' Essentially just a list of display functions '''

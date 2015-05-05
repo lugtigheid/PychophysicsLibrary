@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from Trial import * # not quite how it should be
 import numpy as np
 import scipy.stats as sp
