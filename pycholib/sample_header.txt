@@ -1,0 +1,7 @@
+# $exp_name $exp_ver: started at $exp_date $exp_time
+# Subject name: $subject_name; $subject_details
+# $cond_count condition(s): $cond_val
+# 
+# Stimulus values: $stim_vals
+# $intervals; 20 repetitions; total trials = $trial_count
+# $sep_line
