@@ -305,7 +305,7 @@ class LoggingComponent(object):
                             col_labels_str = "\"{}\"".format(field)
                             n += 1
                     
-                    #col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
+                    col_labels_str = "{0}{1}".format(col_labels_str, self._new_line_char)
                     f_dat.write(col_labels_str)
                     
                 # if the file is not empty, add a newline char to space out data
