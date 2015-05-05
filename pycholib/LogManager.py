@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  LogManager.py
 #  
 
@@ -18,7 +19,7 @@ class TemplateHeading(object):
     def __init__(self):
         pass
 
-class LogHeading(object):
+class LogHeading (object):
     
     def __init__(self, parent, Fields, SeperatorStr=': ', Margin=0, UseBreak=True, 
         BreakChar='-', AlignColumns=True, BreakLength=78, Commented=True):
@@ -105,7 +106,7 @@ class LogHeading(object):
         
         return heading_text 
 
-class LoggingComponent(object):
+class LoggingComponent (object) :
 
     def __init__(self, OutFilePath, StartIdxNumber=0, HeaderTemplateFile=None, 
         Verbose=False, NewLineChar=None, CommentChar='#'):
@@ -148,7 +149,7 @@ class LoggingComponent(object):
         if HeaderTemplateFile != None:
             self._HeaderTemplateFile = HeaderTemplateFile
         else:
-            self._HeaderTemplateFile = "default_header.txt"
+            self._HeaderTemplateFile = "sample_header.txt"
         
         self._started = False
     
